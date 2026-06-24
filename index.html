@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Chifeisty · GitHub 项目展</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://db.onlinewebfonts.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Ma+Shan+Zheng&family=Long+Cang&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link href="https://db.onlinewebfonts.com/c/05cbc0540d14313882dd5651aae63e4f?family=Golften+Demo" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0a0805;color:#f4ead4;
+    font-family:'Golften Demo','Cormorant Garamond','Ma Shan Zheng','ZCOOL XiaoWei','Noto Serif SC','Songti SC','STSong','SimSun',serif;
+    user-select:none;-webkit-user-select:none;font-weight:400}
+  /* 英文专用 - Golften */
+  .en{font-family:'Golften Demo','Cormorant Garamond',Georgia,serif;letter-spacing:.08em}
+  /* 中文专用 - 古书法 Ma Shan Zheng + ZCOOL XiaoWei 兜底 */
+  .cn{font-family:'Ma Shan Zheng','ZCOOL XiaoWei','Noto Serif SC','Songti SC','STSong',serif;letter-spacing:.05em}
+  /* 中文长文阅读 - 用更易读的宋体（保留古意但不刻意） */
+  .cn-body{font-family:'ZCOOL XiaoWei','Noto Serif SC','Songti SC','STSong',serif;letter-spacing:.04em;line-height:2.0}
+  /* 标题级特强书法 - Long Cang 草书感 */
+  .cn-title{font-family:'Long Cang','Ma Shan Zheng','Noto Serif SC',serif;letter-spacing:.1em}
+  #app{position:fixed;inset:0}
+  canvas{display:block;outline:none}
+
+  /* ---------- 加载 ---------- */
+  #loading{position:fixed;inset:0;background:radial-gradient(ellipse at center,#1a140a 0%,#050402 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;transition:opacity 1.2s}
+  #loading.hidden{opacity:0;pointer-events:none}
+  .l-mark{width:48px;height:48px;border:1px solid #d4b878;transform:rotate(45deg);margin-bottom:36px;opacity:.7;
+    position:relative}
+  .l-mark::after{content:'';position:absolute;inset:6px;border:1px solid #8a7a5a;opacity:.6}
+  .l-title{font-size:30px;letter-spacing:14px;color:#d4b878;font-weight:300;margin-bottom:6px;padding-left:14px}
+  .l-sub{font-size:11px;letter-spacing:6px;color:#6a5a3a;margin-bottom:60px}
+  .l-bar{width:220px;height:1px;background:rgba(212,184,120,.15);position:relative;overflow:hidden}
+  .l-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#a8855a,#e8c98a);width:0;transition:width .3s}
+  .l-pct{font-size:10px;color:#a8956a;margin-top:14px;letter-spacing:3px}
+
+  /* ---------- 入口 ---------- */
+  #entry{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(20,15,8,.55) 0%,rgba(5,4,2,.95) 80%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity 1s;backdrop-filter:blur(6px)}
+  #entry.hidden{opacity:0;pointer-events:none}
+  .e-orn{width:80px;height:1px;background:#d4b878;position:relative;margin-bottom:48px;opacity:.7}
+  .e-orn::before,.e-orn::after{content:'';position:absolute;top:50%;width:8px;height:8px;border:1px solid #d4b878;
+    transform:translateY(-50%) rotate(45deg);background:#0a0805}
+  .e-orn::before{left:-4px}.e-orn::after{right:-4px}
+  .e-title{font-size:56px;letter-spacing:18px;color:#f4ead4;font-weight:200;margin-bottom:14px;padding-left:18px;
+    text-shadow:0 0 40px rgba(212,184,120,.2)}
+  .e-en{font-size:13px;letter-spacing:8px;color:#a8956a;margin-bottom:8px}
+  .e-tag{font-size:11px;letter-spacing:5px;color:#6a5a3a;margin-bottom:64px;font-style:italic}
+  .e-btn{padding:16px 64px;background:transparent;border:1px solid #d4b878;color:#d4b878;font-size:14px;
+    letter-spacing:10px;cursor:pointer;transition:all .4s;font-family:inherit;padding-left:74px;position:relative}
+  .e-btn::before,.e-btn::after{content:'';position:absolute;top:50%;width:18px;height:1px;background:#d4b878;transform:translateY(-50%);transition:all .4s}
+  .e-btn::before{left:14px}.e-btn::after{right:14px;opacity:0}
+  .e-btn:hover{background:#d4b878;color:#0a0805}
+  .e-btn:hover::before{background:#0a0805;width:24px}
+  .e-tip{position:absolute;bottom:36px;font-size:10px;color:#5a4a2a;letter-spacing:3px;text-align:center;line-height:1.8}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity 1s}
+  #hud.visible{opacity:1}
+  .h-top{position:absolute;top:24px;left:0;right:0;text-align:center;pointer-events:none}
+  .h-name{font-size:15px;letter-spacing:8px;color:#f4ead4;padding-left:8px;font-weight:500;
+    text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 14px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.9)}
+  .h-sub{font-size:10px;letter-spacing:5px;color:#e8c878;margin-top:5px;font-weight:400;
+    text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 10px rgba(0,0,0,.55)}
+  .h-corner{position:absolute;top:24px;right:32px;font-size:10px;letter-spacing:3px;color:#e8c878;text-align:right;line-height:1.8;
+    text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.5)}
+  .h-corner-l{position:absolute;top:24px;left:32px;font-size:10px;letter-spacing:3px;color:#e8c878;line-height:1.8;
+    text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.5)}
+  .h-bot{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:18px}
+  .h-bar{width:240px;height:1px;background:rgba(244,234,212,.35);position:relative;box-shadow:0 1px 2px rgba(0,0,0,.6)}
+  .h-fill{position:absolute;left:0;top:-1px;height:3px;background:#d4b878;width:0;transition:width .25s;box-shadow:0 0 12px rgba(212,184,120,.6)}
+  .h-lbl{font-size:9px;color:#e8c878;letter-spacing:3px;text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.5)}
+  .h-current{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:5px;color:#f4ead4;font-weight:500;transition:opacity .4s;opacity:0;
+    text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.55)}
+  .h-current.show{opacity:1}
+
+  /* ---------- 退出按钮（右上角常驻） ---------- */
+  #exit-btn{position:fixed;top:18px;right:18px;z-index:30;padding:10px 22px;background:rgba(10,8,5,.7);
+    border:1px solid rgba(212,184,120,.5);color:#d4b878;font-family:inherit;font-size:11px;letter-spacing:5px;
+    cursor:pointer;backdrop-filter:blur(8px);transition:all .3s;display:none}
+  #exit-btn.show{display:block}
+  #exit-btn:hover{background:#d4b878;color:#0a0805;border-color:#d4b878}
+
+  /* ---------- 持续 WASD 控制面板（左下角） ---------- */
+  #ctrl-panel{position:fixed;bottom:24px;left:24px;z-index:11;display:none;flex-direction:column;gap:10px;
+    background:rgba(10,8,5,.55);border:1px solid rgba(212,184,120,.2);padding:14px 18px;backdrop-filter:blur(10px);
+    font-size:10px;color:rgba(244,234,212,.7);letter-spacing:3px;min-width:200px}
+  #ctrl-panel.show{display:flex}
+  .ctrl-row{display:flex;align-items:center;gap:10px}
+  .ctrl-icon{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;
+    border:1px solid rgba(212,184,120,.45);font-size:10px;color:#d4b878;font-family:'Golften Demo','Cormorant Garamond',serif;
+    padding:0 6px}
+  .ctrl-icon.long{min-width:auto;padding:0 10px}
+  .ctrl-text{font-family:'Noto Serif SC',serif;font-size:11px;color:#d4cdb6;letter-spacing:2px}
+  .ctrl-text small{color:#a8956a;font-family:'Golften Demo','Cormorant Garamond',serif;letter-spacing:3px;margin-left:4px}
+  .wasd-grid{display:grid;grid-template-columns:repeat(3,26px);grid-template-rows:repeat(2,26px);gap:3px;margin-right:6px}
+  .wasd-grid .ctrl-icon:nth-child(1){grid-column:2;grid-row:1}
+  .wasd-grid .ctrl-icon:nth-child(2){grid-column:1;grid-row:2}
+  .wasd-grid .ctrl-icon:nth-child(3){grid-column:2;grid-row:2}
+  .wasd-grid .ctrl-icon:nth-child(4){grid-column:3;grid-row:2}
+  .ctrl-divider{height:1px;background:rgba(212,184,120,.18);margin:2px 0}
+  .ctrl-title{font-size:9px;letter-spacing:4px;color:#a8956a;font-family:'Golften Demo','Cormorant Garamond',serif;margin-bottom:2px}
+  #cross,#cross-lbl{display:none !important}
+  /* 鼠标悬停标签（跟随鼠标） */
+  #hand-lbl{position:fixed;top:0;left:0;color:#d4b878;font-size:12px;letter-spacing:5px;
+    opacity:0;transition:opacity .25s;pointer-events:none;z-index:6;
+    text-shadow:0 0 12px rgba(0,0,0,.9);font-family:'Noto Serif SC',serif;
+    padding:8px 14px;background:rgba(10,8,5,.7);border:1px solid rgba(212,184,120,.35);backdrop-filter:blur(6px);
+    transform:translate(20px,18px);white-space:nowrap}
+  #hand-lbl.show{opacity:1}
+  #hand-lbl .en{display:block;font-size:9px;color:#a8956a;margin-top:4px;letter-spacing:3px}
+
+  /* ---------- 提示 ---------- */
+  #hint{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);color:rgba(168,149,106,.55);font-size:10px;
+    letter-spacing:3px;text-align:center;pointer-events:none;z-index:9;opacity:0;transition:opacity .8s}
+  #hint.show{opacity:1}
+  .h-keys{margin-top:8px;display:flex;gap:8px;justify-content:center}
+  .h-key{padding:3px 8px;border:1px solid rgba(168,149,106,.3);font-size:9px;letter-spacing:1px;min-width:22px;text-align:center}
+
+  /* ---------- 详情页 ---------- */
+  #detail{position:fixed;inset:0;background:#070504;z-index:400;overflow-y:auto;opacity:0;pointer-events:none;
+    transition:opacity .8s}
+  #detail.visible{opacity:1;pointer-events:auto}
+  #detail::-webkit-scrollbar{width:6px}#detail::-webkit-scrollbar-track{background:#0a0805}
+  #detail::-webkit-scrollbar-thumb{background:#3a2f1a}
+  .d-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(60,45,20,.3) 0%,transparent 60%);
+    pointer-events:none;z-index:-1}
+  .d-inner{max-width:1240px;margin:0 auto;padding:60px 60px 140px;position:relative}
+  .d-back{display:inline-flex;align-items:center;gap:14px;color:#d4b878;font-size:11px;letter-spacing:5px;cursor:pointer;
+    padding:14px 22px;border:1px solid transparent;transition:all .4s;background:transparent;font-family:inherit;padding-left:27px}
+  .d-back:hover{border-color:rgba(212,184,120,.4);background:rgba(212,184,120,.03)}
+  .d-back::before{content:'←';margin-right:4px;font-size:14px}
+  .d-meta{font-size:10px;letter-spacing:6px;color:#a8956a;margin:80px 0 24px}
+  .d-num{display:inline-block;padding:4px 10px;border:1px solid rgba(212,184,120,.4);margin-right:14px;font-size:9px}
+  .d-title{font-size:72px;font-weight:200;letter-spacing:14px;color:#f4ead4;margin-bottom:20px;line-height:1.15;
+    padding-left:14px;text-shadow:0 0 40px rgba(212,184,120,.15)}
+  .d-sub{font-size:15px;color:#c0a868;letter-spacing:5px;margin-bottom:64px;font-style:italic;font-family:Georgia,serif}
+  .d-frame{padding:24px;background:linear-gradient(135deg,#1a140a 0%,#0a0805 100%);
+    border:1px solid rgba(212,184,120,.25);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 0 1px rgba(212,184,120,.1);position:relative}
+  .d-frame::before,.d-frame::after{content:'';position:absolute;width:40px;height:40px;border:1px solid #d4b878;opacity:.4}
+  .d-frame::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .d-frame::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+  .d-image{display:block;width:100%;max-height:78vh;object-fit:contain;background:#000}
+  .d-grid{display:grid;grid-template-columns:1fr 320px;gap:90px;margin-top:90px;padding-top:60px;
+    border-top:1px solid rgba(212,184,120,.12)}
+  .d-text{font-size:16px;line-height:2.1;color:#d4cdb6;letter-spacing:1.5px}
+  .d-text p{margin-bottom:22px;text-indent:2em}
+  .d-text p:first-child{text-indent:0;font-size:18px;color:#e8d8b6}
+  .d-text p:first-child::first-letter{font-size:48px;float:left;line-height:1;margin:6px 12px 0 0;color:#d4b878;font-weight:300}
+  .d-info dt{color:#6a5a3a;letter-spacing:4px;margin-top:22px;font-size:10px;padding-left:8px;border-left:1px solid rgba(212,184,120,.3)}
+  .d-info dt:first-child{margin-top:0}
+  .d-info dd{margin-top:8px;letter-spacing:1px;line-height:1.6;color:#d4cdb6;font-size:13px;padding-left:8px}
+  .d-nav{margin-top:120px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .d-nav-btn{padding:32px 28px;border:1px solid rgba(212,184,120,.18);cursor:pointer;transition:all .4s;
+    color:#a8956a;background:transparent;font-family:inherit;text-align:left}
+  .d-nav-btn:hover{border-color:#d4b878;background:rgba(212,184,120,.04);color:#f4ead4}
+  .d-nav-btn.next{text-align:right}
+  .d-nav-lbl{display:block;color:#5a4a2a;font-size:9px;margin-bottom:10px;letter-spacing:4px}
+  .d-nav-ttl{font-size:18px;letter-spacing:4px;color:inherit;font-weight:300}
+
+  /* ---------- 移动控制 ---------- */
+  #mob{position:fixed;bottom:24px;right:24px;z-index:8;display:none;flex-direction:column;gap:10px}
+  #mob.show{display:flex}
+  .m-btn{width:56px;height:56px;border-radius:50%;background:rgba(20,15,8,.85);border:1px solid rgba(212,184,120,.4);
+    color:#d4b878;font-size:22px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+    -webkit-tap-highlight-color:transparent;touch-action:none}
+  .m-btn:active{background:rgba(212,184,120,.2)}
+
+  @media (max-width:768px){
+    .e-title{font-size:36px;letter-spacing:10px}
+    .d-title{font-size:38px;letter-spacing:6px}
+    .d-grid{grid-template-columns:1fr;gap:50px;padding-top:40px}
+    .d-inner{padding:36px 20px 80px}
+    .h-corner,.h-corner-l{display:none}
+    .h-bar{width:160px}
+    .d-nav{grid-template-columns:1fr}
+    .d-nav-btn.next{text-align:left}
+  }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="loading">
+    <div class="l-mark"></div>
+    <div class="l-title cn">Chifeisty</div>
+    <div class="l-sub en">GITHUB PROJECT GALLERY</div>
+    <div class="l-bar"><div class="l-fill" id="lfill"></div></div>
+    <div class="l-pct" id="lpct"><span class="cn">载入中</span> · <span class="en">0%</span></div>
+  </div>
+
+  <div id="entry" style="display:none">
+    <div class="e-orn"></div>
+    <div class="e-title cn">Chifeisty · 项目展</div>
+    <div class="e-en en">GITHUB PROJECTS</div>
+    <div class="e-tag en"><i>— frontend · full-stack · open source · MMXXVI —</i></div>
+    <button class="e-btn en" id="ebtn">ENTER</button>
+    <div class="e-tip">
+      <span class="en">MOVE MOUSE</span> <span class="cn">环顾四周</span>　|
+      <span class="en">W A S D / WHEEL</span> <span class="cn">行走</span>　|
+      <span class="en">CLICK</span> <span class="cn">查看项目详情</span><br>
+      <span class="cn">建议在桌面浏览器中以全屏模式访问</span>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div class="h-top">
+      <div class="h-name cn">Chifeisty · GitHub 项目展</div>
+      <div class="h-sub en">WELCOME · GITHUB PROJECT GALLERY</div>
+    </div>
+    <div class="h-corner-l en">
+      MMXXVI<br>
+      <span style="color:rgba(108,90,58,.5)">FULL-STACK · CREATIVE</span>
+    </div>
+    <div class="h-corner">
+      <span class="en">ESC</span> · <span class="cn">暂停</span><br>
+      <span class="en" style="color:rgba(108,90,58,.5)">PRESS TO PAUSE</span>
+    </div>
+    <div class="h-current cn" id="hcurrent"></div>
+    <div class="h-bot">
+      <div class="h-lbl en">No.01</div>
+      <div class="h-bar"><div class="h-fill" id="hfill"></div></div>
+      <div class="h-lbl en">No.10</div>
+    </div>
+  </div>
+
+  <div id="cross"></div>
+  <div id="cross-lbl">点击查看 · CLICK TO VIEW</div>
+  <div id="hand-lbl"><span class="cn">点击查看项目</span><span class="en">CLICK TO VIEW</span></div>
+
+  <button id="exit-btn">退出 · EXIT</button>
+
+  <div id="ctrl-panel">
+    <div class="ctrl-title">CONTROLS · 控制方式</div>
+    <div class="ctrl-row">
+      <div class="wasd-grid">
+        <div class="ctrl-icon">W</div>
+        <div class="ctrl-icon">A</div>
+        <div class="ctrl-icon">S</div>
+        <div class="ctrl-icon">D</div>
+      </div>
+      <div class="ctrl-text">行走 <small>walk</small></div>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-row">
+      <div class="ctrl-icon long">DRAG</div>
+      <div class="ctrl-text">按住左键环顾 <small>look</small></div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-icon long">WHEEL</div>
+      <div class="ctrl-text">前后 <small>forward/back</small></div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-icon long">CLICK</div>
+      <div class="ctrl-text">查看项目 <small>view project</small></div>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-row">
+      <div class="ctrl-icon">ESC</div>
+      <div class="ctrl-text">暂停退出 <small>pause/exit</small></div>
+    </div>
+  </div>
+
+  <div id="hint">
+    <div><span class="en">WASD</span> <span class="cn">行走</span> · <span class="en">MOUSE</span> <span class="cn">环顾</span> · <span class="en">WHEEL</span> <span class="cn">前后</span> · <span class="en">CLICK</span> <span class="cn">查看项目</span></div>
+    <div class="h-keys">
+      <div class="h-key en">W</div><div class="h-key en">A</div><div class="h-key en">S</div><div class="h-key en">D</div>
+      <div class="h-key cn">滚轮</div><div class="h-key en">ESC</div>
+    </div>
+  </div>
+
+  <div id="mob">
+    <div class="m-btn" id="mfwd">↑</div>
+    <div class="m-btn" id="mback">↓</div>
+  </div>
+
+  <div id="detail">
+    <div class="d-bg"></div>
+    <div class="d-inner">
+      <button class="d-back" id="dback">返回展厅</button>
+      <div class="d-meta" id="dmeta"></div>
+      <div class="d-title" id="dtitle"></div>
+      <div class="d-sub" id="dsub"></div>
+      <div class="d-frame"><img class="d-image" id="dimg" alt=""></div>
+      <div class="d-grid">
+        <div class="d-text" id="dtext"></div>
+        <dl class="d-info" id="dinfo"></dl>
+      </div>
+      <div class="d-nav">
+        <button class="d-nav-btn prev" id="dprev">
+          <span class="d-nav-lbl">← 上一个项目</span>
+          <span class="d-nav-ttl" id="dprevttl"></span>
+        </button>
+        <button class="d-nav-btn next" id="dnext">
+          <span class="d-nav-lbl">下一个项目 →</span>
+          <span class="d-nav-ttl" id="dnextttl"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 不再使用 importmap — 改为脚本内动态多 CDN fallback，国内访问更稳 -->
+
+  <!-- 全局错误捕获：任何 JS 或资源错误直接显示在加载界面 -->
+  <script>
+    (function(){
+      const showErr = (msg) => {
+        const lpct = document.getElementById('lpct');
+        if(lpct){
+          lpct.innerHTML = '<span style="color:#e88a78;font-size:11px;line-height:1.6;display:block;max-width:600px;margin:8px auto 0;text-align:left;white-space:normal;word-break:break-word">⚠ ' + msg + '</span>';
+        }
+        console.error('[museum]', msg);
+      };
+      window.addEventListener('error', e => {
+        const m = e.message + (e.filename ? ' @ ' + e.filename.split('/').pop() : '') + (e.lineno ? ':' + e.lineno : '');
+        showErr(m);
+      });
+      window.addEventListener('unhandledrejection', e => {
+        showErr('Promise: ' + (e.reason && e.reason.message || e.reason));
+      });
+      // 模块加载超时检测
+      setTimeout(()=>{
+        if(!window.__museumBooted){
+          showErr('CDN 加载超时（unpkg.com 无响应）。请检查网络，或用本地三方代理访问 unpkg.com / cdn.jsdelivr.net。');
+        }
+      }, 10000);
+    })();
+  </script>
+
+  <script type="module">
+    /* ============================================================
+     * 多 CDN 动态导入 — 自动 fallback，国内/海外都能跑
+     * ============================================================ */
+    const CDN_LIST = [
+      'https://unpkg.com/three@0.160.0/build/three.module.js',
+      'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+      'https://esm.sh/three@0.160.0',
+      'https://cdn.skypack.dev/three@0.160.0',
+    ];
+    let THREE = null;
+    for(const url of CDN_LIST){
+      try {
+        document.getElementById('lpct').textContent = '正在尝试 ' + new URL(url).host + ' …';
+        THREE = await import(url);
+        console.log('[museum] Three.js loaded from', url);
+        break;
+      } catch(e){
+        console.warn('[museum] CDN failed:', url, e.message);
+      }
+    }
+    if(!THREE){
+      throw new Error('所有 CDN 都不可达（unpkg / jsdelivr / esm.sh / skypack）— 请检查网络');
+    }
+
+    /* ============================================================
+     * 项目数据 — Chifeisty GitHub 项目展览
+     * ============================================================ */
+    const WMC = (file, w=1400) =>
+      `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;
+
+    /* ============================================================
+     * GitHub 项目数据 — Chifeisty 个人项目展览
+     *
+     * 所有项目画面使用程序化海报纹理（Canvas 2D 渲染），无需外部图片。
+     * 每张海报展示项目名 + 副标题 + 技术栈，全在浏览器端即时生成。
+     * ============================================================ */
+    const ARTIST = { cn:'Chifeisty', en:'CHIFEISTY', titleCn:'全栈开发者', titleEn:'Full-Stack Developer' };
+
+    const works = [
+      {
+        id:'lyrics-vault', no:'No.01', side:'left', z:20,
+        image:'', title:'LyricsVault', subtitle:'歌词搜索平台',
+        cat:'TypeScript · 全栈', catEn:'TypeScript Full-Stack',
+        year:'2025', medium:'React + Next.js', size:'SPA 搜索平台',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#1a1408','#3a2a18','#d4a868','#f4e8cc','#a08050'],
+        text:[
+          'LyricsVault 是一个海量歌词搜索平台，支持快速检索和精准匹配。前端采用 React + TypeScript 构建，后端对接歌词 API 实现毫秒级响应。',
+          '设计上追求极致的搜索体验：输入即搜、高亮定位、流畅滚动。整体采用暗色主题，让歌词成为页面上唯一的主角。',
+          '这是一个展示前端数据获取、状态管理和响应式 UI 能力的完整项目。'
+        ],
+        repo:'https://github.com/1624318455/LyricsVault',
+        homepage:'https://lyricsvault.memeflyfly.top/'
+      },
+      {
+        id:'soundtrail', no:'No.02', side:'right', z:20,
+        image:'', title:'SoundTrail', subtitle:'个人音乐作品集',
+        cat:'TypeScript · 前端', catEn:'TypeScript Frontend',
+        year:'2025', medium:'React + Next.js', size:'个人网站',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#0a1820','#1a3840','#d4a878','#e8d0a8','#08101a'],
+        text:[
+          'SoundTrail 是一个个人音乐作品集网站，将音乐与视觉设计融为一体。页面布局以沉浸式体验为核心，每首曲目都有专属的视觉呈现。',
+          '技术方面使用了 React + TypeScript + Next.js，搭配动画和响应式设计。展示了从前端组件化到音频交互的全链路开发能力。',
+          '这个项目证明了一件事：一个好的前端开发者不仅会写代码，更懂如何让用户在页面上停留。'
+        ],
+        repo:'https://github.com/1624318455/SoundTrail',
+        homepage:'https://soundtrail.vercel.app'
+      },
+      {
+        id:'fmemo', no:'No.03', side:'left', z:10,
+        image:'', title:'FMemo', subtitle:'笔记应用',
+        cat:'TypeScript · 全栈', catEn:'TypeScript Full-Stack',
+        year:'2026', medium:'React + Next.js', size:'全栈笔记应用',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#1a1208','#3a2810','#c8a868','#e8dcc8','#a08048'],
+        text:[
+          'FMemo 是一款简洁高效的笔记应用，专注文字记录和知识管理。前端使用 React + TypeScript，Markdown 编辑、实时预览、分类标签一应俱全。',
+          '全栈架构覆盖了从前端 UI 到后端 API 再到数据持久化的完整链路，是一个典型的 CRUD 应用范本。',
+          '好的笔记工具应该像一张白纸——足够简单让你开始写，又足够强大让你一直用。'
+        ],
+        repo:'https://github.com/1624318455/FMemo',
+        homepage:'https://f-memo.vercel.app'
+      },
+      {
+        id:'blog', no:'No.04', side:'right', z:10,
+        image:'', title:'blog', subtitle:'React + Vite 博客',
+        cat:'TypeScript · React', catEn:'TypeScript React',
+        year:'2025', medium:'React + Vite + Ant Design', size:'响应式博客系统',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#f4f0e8','#2a2018','#a89060','#d4c8a8','#e8e0d0'],
+        text:[
+          '基于 React + Vite + Ant Design 构建的现代博客系统。采用组件化架构，支持文章发布、标签分类、暗色模式等完整功能。',
+          'Vite 带来的极速 HMR 让开发体验大幅提升，Ant Design 的优秀组件库保证了界面的专业感。',
+          '一个博客不只是展示文章的地方，更是前端开发者技术栈的完整呈现。'
+        ],
+        repo:'https://github.com/1624318455/blog',
+        homepage:'https://blog.memeflyfly.top'
+      },
+      {
+        id:'fportfolio', no:'No.05', side:'left', z:0,
+        image:'', title:'FPortfolio', subtitle:'AI Coding 作品集',
+        cat:'TypeScript · 前端', catEn:'TypeScript Frontend',
+        year:'2025', medium:'React + Three.js', size:'3D 作品展示',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#0a0805','#2a1a08','#d4b878','#f4ead4','#a88850'],
+        text:[
+          'FPortfolio 是一个融合 AI Coding 与 3D 展示的个人作品集网站。采用 React + Three.js 构建，在浏览器中呈现沉浸式的项目浏览体验。',
+          '全站所有 3D 纹理程序化生成，无需任何外部图片资源。这既是前端技术能力的展示，也是对"代码即设计"理念的实践。',
+          '你现在看到的这个展厅，就是 FPortfolio 精神的延伸。'
+        ],
+        repo:'https://github.com/1624318455/FPortfolio',
+        homepage:'https://fportfolio.memeflyfly.top'
+      },
+      {
+        id:'ftab', no:'No.06', side:'right', z:0,
+        image:'', title:'FTab', subtitle:'Chrome 新标签页',
+        cat:'TypeScript · 扩展', catEn:'TypeScript Chrome Extension',
+        year:'2025', medium:'Chrome Extension + React', size:'浏览器扩展',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#0f1520','#1a2840','#d4b878','#e8d8b0','#08101a'],
+        text:[
+          'FTab 是一款 Chrome 新标签页扩展，让浏览器的每一次新开页都变成一次愉悦的视觉体验。集成了天气、待办、精美壁纸等功能模块。',
+          '技术栈为 TypeScript + React，熟悉 Chrome Extension 的 Manifest V3 规范、消息传递机制和跨域安全策略。',
+          '浏览器扩展是前端开发者最容易触达真实用户的产品形态——安装即用，零摩擦。'
+        ],
+        repo:'https://github.com/1624318455/FTab',
+        homepage:''
+      },
+      {
+        id:'fcomp', no:'No.07', side:'left', z:-10,
+        image:'', title:'fcomp', subtitle:'前端组件库',
+        cat:'JavaScript · 组件', catEn:'JavaScript Components',
+        year:'2025', medium:'JavaScript + CSS', size:'可复用组件集合',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#1a1810','#3a3828','#c8b080','#e8e0c8','#908058'],
+        text:[
+          'fcomp 是一个轻量级前端组件库，包含按钮、卡片、弹窗、表单等常用 UI 组件。所有组件从零手写，零第三方 UI 依赖。',
+          '封装思路遵循"原子化"设计原则：基础组件可组合、可扩展，样式定制灵活。适合需要轻量化 UI 方案的中小型项目。',
+          '写组件库是对前端基本功最好的检验——每一个 prop 的设计、每一个状态的覆盖，都在考验你对用户行为的理解。'
+        ],
+        repo:'https://github.com/1624318455/fcomp',
+        homepage:'https://fcomp-beta.vercel.app'
+      },
+      {
+        id:'fconv', no:'No.08', side:'right', z:-10,
+        image:'', title:'FConv', subtitle:'AI 对话界面',
+        cat:'HTML · JS', catEn:'HTML JavaScript',
+        year:'2025', medium:'纯前端 · API 集成', size:'AI 聊天界面',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#0a0815','#1a1830','#a890a0','#e8d8d0','#08081a'],
+        text:[
+          'FConv 是一个 AI 对话界面，展示了前端如何与大语言模型 API 对接。支持流式打字输出、对话历史保存、主题切换等体验优化。',
+          '流式渲染是前端与 AI 集成的关键技术点——需要同时处理 EventSource 接收、缓冲区管理和渐进式 DOM 更新。',
+          'AI 时代的前端开发，核心能力不再是"画界面"，而是"设计人与 AI 的交互方式"。'
+        ],
+        repo:'https://github.com/1624318455/FConv',
+        homepage:'https://web-sigma-seven-98.vercel.app'
+      },
+      {
+        id:'singsinghow', no:'No.09', side:'left', z:-20,
+        image:'', title:'SingSingHow', subtitle:'唱歌学语言',
+        cat:'Dart · Flutter', catEn:'Dart/Flutter Cross-Platform',
+        year:'2025', medium:'Flutter 跨平台', size:'iOS/Android/Web',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#1a0810','#3a1828','#d4a8b0','#f4d8d8','#a08080'],
+        text:[
+          'SingSingHow 是一个通过唱歌来学习语言的跨平台应用。使用 Flutter 框架一次开发同时覆盖 iOS、Android 和 Web 端。',
+          '核心功能包括歌词逐字高亮、发音评测、语速控制和多语言支持。展示了 Flutter 在动画、音频处理和平台通道集成方面的能力。',
+          '语言学习最好的方式不是背单词，而是唱出来。'
+        ],
+        repo:'https://github.com/1624318455/SingSingHow',
+        homepage:'https://sing-sing-how.vercel.app'
+      },
+      {
+        id:'nexpass', no:'No.10', side:'right', z:-20,
+        image:'', title:'NexPass', subtitle:'跨平台密码管理器',
+        cat:'Dart · Flutter', catEn:'Dart/Flutter',
+        year:'2025', medium:'Flutter 跨平台', size:'iOS/Android',
+        client:'个人项目', clientEn:'Personal Project',
+        palette:['#0a0810','#1a2840','#a8b8d0','#d8d8e8','#08081a'],
+        text:[
+          'NexPass 是一款跨平台密码管理器应用，使用 Flutter 构建。核心功能包括密码生成、加密存储、自动填充和 iCloud/Google Drive 云同步。',
+          '在安全方面实现了 AES-256 加密、本地主密码校验和生物识别验证。展示了 Flutter 在安全性、平台原生 API 集成和数据持久化方面的深度应用。',
+          '一个好的密码管理器应该让你忘记密码的存在。'
+        ],
+        repo:'https://github.com/1624318455/NexPass',
+        homepage:''
+      }
+    ];
+
+    /* ============================================================
+     * 工具：可重现伪随机
+     * ============================================================ */
+    function mulberry32(seed){
+      return function(){
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t>>>15, t | 1);
+        t ^= t + Math.imul(t ^ t>>>7, t | 61);
+        return ((t ^ t>>>14) >>> 0) / 4294967296;
+      };
+    }
+    function hashStr(s){let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0;}
+
+    /* ============================================================
+     * 程序化纹理生成
+     * ============================================================ */
+    function makeMarbleTexture(opts={}){
+      const { size=512, base='#ede2c8', vein='#a89060', dark='#5a4a32', density=28 } = opts;
+      const cv = document.createElement('canvas'); cv.width = cv.height = size;
+      const ctx = cv.getContext('2d');
+      // base
+      const bg = ctx.createLinearGradient(0,0,size,size);
+      bg.addColorStop(0, base); bg.addColorStop(.5,'#f4ebd2'); bg.addColorStop(1,base);
+      ctx.fillStyle = bg; ctx.fillRect(0,0,size,size);
+      // veins
+      const rand = mulberry32(hashStr(JSON.stringify(opts)+'v'));
+      for(let i=0;i<density;i++){
+        ctx.strokeStyle = `rgba(${parseInt(vein.slice(1,3),16)},${parseInt(vein.slice(3,5),16)},${parseInt(vein.slice(5,7),16)},${rand()*.35+.05})`;
+        ctx.lineWidth = rand()*2.5+.4;
+        ctx.beginPath();
+        let x=rand()*size, y=rand()*size;
+        ctx.moveTo(x,y);
+        for(let j=0;j<60;j++){
+          x+=(rand()-.5)*30; y+=(rand()-.5)*30;
+          ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
+      // dark speckles
+      for(let i=0;i<400;i++){
+        ctx.fillStyle = `rgba(${parseInt(dark.slice(1,3),16)},${parseInt(dark.slice(3,5),16)},${parseInt(dark.slice(5,7),16)},${rand()*.18})`;
+        ctx.fillRect(rand()*size, rand()*size, 1.5, 1.5);
+      }
+      // bright micro highlights
+      for(let i=0;i<150;i++){
+        ctx.fillStyle = `rgba(255,250,235,${rand()*.25})`;
+        ctx.fillRect(rand()*size, rand()*size, 1, 1);
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeFloorTexture(){
+      const size = 1024;
+      const cv = document.createElement('canvas'); cv.width = cv.height = size;
+      const ctx = cv.getContext('2d');
+      // checkerboard of two marbles
+      const tile = size/4;
+      const rand = mulberry32(99);
+      for(let i=0;i<4;i++) for(let j=0;j<4;j++){
+        const dark = (i+j)%2===1;
+        const grad = ctx.createRadialGradient(i*tile+tile/2, j*tile+tile/2, 0, i*tile+tile/2, j*tile+tile/2, tile);
+        if(dark){
+          grad.addColorStop(0,'#3a2a1a'); grad.addColorStop(1,'#1a1108');
+        } else {
+          grad.addColorStop(0,'#f0e2c0'); grad.addColorStop(1,'#c8b488');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(i*tile, j*tile, tile, tile);
+        // veins
+        ctx.save();
+        ctx.beginPath(); ctx.rect(i*tile, j*tile, tile, tile); ctx.clip();
+        for(let k=0;k<14;k++){
+          ctx.strokeStyle = dark
+            ? `rgba(180,150,100,${rand()*.3+.1})`
+            : `rgba(120,90,50,${rand()*.3+.1})`;
+          ctx.lineWidth = rand()*1.5+.3;
+          ctx.beginPath();
+          let x=i*tile+rand()*tile, y=j*tile+rand()*tile;
+          ctx.moveTo(x,y);
+          for(let s=0;s<30;s++){ x+=(rand()-.5)*20; y+=(rand()-.5)*20; ctx.lineTo(x,y); }
+          ctx.stroke();
+        }
+        ctx.restore();
+        // grout line
+        ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(i*tile+.5, j*tile+.5, tile, tile);
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 8;
+      return tex;
+    }
+
+    function makeCarpetTexture(){
+      const w = 256, h = 1024;
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d');
+      // base burgundy
+      const bg = ctx.createLinearGradient(0,0,w,0);
+      bg.addColorStop(0,'#3a0f12'); bg.addColorStop(.5,'#5a1a1f'); bg.addColorStop(1,'#3a0f12');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // gold border
+      ctx.strokeStyle = '#a87838'; ctx.lineWidth = 4;
+      ctx.strokeRect(8,8,w-16,h-16);
+      ctx.strokeStyle = '#8a5828'; ctx.lineWidth = 1;
+      ctx.strokeRect(18,18,w-36,h-36);
+      // ornamental pattern
+      const rand = mulberry32(7);
+      ctx.strokeStyle = '#a87838'; ctx.lineWidth = 1;
+      for(let y=60;y<h-60;y+=120){
+        ctx.beginPath();
+        ctx.arc(w/2, y, 30, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(w/2, y, 18, 0, Math.PI*2);
+        ctx.stroke();
+        // diamond
+        ctx.beginPath();
+        ctx.moveTo(w/2, y-40); ctx.lineTo(w/2+40, y);
+        ctx.lineTo(w/2, y+40); ctx.lineTo(w/2-40, y);
+        ctx.closePath(); ctx.stroke();
+      }
+      // texture noise
+      for(let i=0;i<3000;i++){
+        ctx.fillStyle = `rgba(${100+rand()*40},${20+rand()*20},${20+rand()*20},${rand()*.4})`;
+        ctx.fillRect(rand()*w, rand()*h, 1, 1);
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeArtTexture(work, aspect=0.8){
+      // 海报式渲染 — 大书法字 + 副标题 + 类别，确保从展厅另一头都看得见
+      const w = 1200, h = Math.round(w / aspect);
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d');
+      const seed = hashStr(work.id);
+      const rand = mulberry32(seed);
+      const p = work.palette;
+
+      // 1. 底色（横向微梯度）
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0, p[0]);
+      bg.addColorStop(1, p[1] || p[0]);
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+
+      // 2. 大色块氛围（淡淡的几何 / 光晕，不抢标题）
+      for(let i=0;i<3;i++){
+        const x = (0.3 + rand()*0.4)*w, y = (0.3 + rand()*0.4)*h;
+        const r = w*0.45 + rand()*w*0.15;
+        const c = p[2];
+        const grad = ctx.createRadialGradient(x,y,0,x,y,r);
+        grad.addColorStop(0, c + '38');
+        grad.addColorStop(1, c + '00');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0,0,w,h);
+      }
+
+      // 3. 顶部小信息栏（编号 / 年份）
+      ctx.fillStyle = p[3] + 'cc';
+      ctx.font = `${Math.floor(w*0.032)}px "Cormorant Garamond", "Golften Demo", Georgia, serif`;
+      ctx.textAlign = 'left';   ctx.textBaseline = 'top';
+      ctx.fillText(work.no, w*0.08, h*0.08);
+      ctx.textAlign = 'right';
+      ctx.fillText(work.year, w*0.92, h*0.08);
+
+      // 4. 巨型标题字 — 整张画面的视觉中心
+      ctx.fillStyle = p[3];
+      const hasCJK = /[一-鿿㐀-䶿]/.test(work.title);
+      if (hasCJK) {
+        ctx.font = `${Math.floor(h*0.55)}px "Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", "Songti SC", serif`;
+      } else {
+        ctx.font = `${Math.floor(h*0.32)}px "Golften Demo", "Cormorant Garamond", Georgia, serif`;
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(work.title, w/2, h*0.50);
+
+      // 5. 中文副标题
+      ctx.fillStyle = p[3] + 'cc';
+      ctx.font = `${Math.floor(w*0.042)}px "ZCOOL XiaoWei", "Noto Serif SC", serif`;
+      ctx.fillText(work.subtitle, w/2, h*0.82);
+
+      // 6. 类别（编程语言等）
+      ctx.fillStyle = p[3] + '99';
+      ctx.font = `${Math.floor(w*0.028)}px "Golften Demo", "Cormorant Garamond", Georgia, serif`;
+      ctx.fillText('— ' + work.cat + ' —', w/2, h*0.90);
+
+      // 7. 纸张颗粒
+      for(let i=0;i<3500;i++){
+        const c = rand()<.5?0:255;
+        ctx.fillStyle = `rgba(${c},${c},${c},${rand()*.04})`;
+        ctx.fillRect(rand()*w, rand()*h, 1, 1);
+      }
+
+      // 8. 轻微暗角
+      const vig = ctx.createRadialGradient(w/2,h/2,h*.45, w/2,h/2, h*.75);
+      vig.addColorStop(0,'#00000000'); vig.addColorStop(1,'#00000044');
+      ctx.fillStyle = vig; ctx.fillRect(0,0,w,h);
+
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 8;
+      // 给详情页用
+      try { work._dataUrl = cv.toDataURL('image/jpeg', 0.88); } catch(e){}
+      return tex;
+    }
+
+    /* ============================================================
+     * Three.js 场景
+     * ============================================================ */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0805);
+    scene.fog = new THREE.Fog(0x0a0805, 35, 95);
+
+    const camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 250);
+    camera.position.set(0, 1.65, 30);
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    document.getElementById('app').appendChild(renderer.domElement);
+
+    // Environment for reflections
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    // 程序化环境贴图 — 替代 RoomEnvironment，零外部 addon 依赖
+    (function buildEnvMap(){
+      const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
+      const ctx = cv.getContext('2d');
+      // 暖色室内梯度（顶部暗 → 中部亮"灯带" → 底部暗）
+      const g = ctx.createLinearGradient(0, 0, 0, 256);
+      g.addColorStop(0,    '#1a1208');
+      g.addColorStop(0.35, '#5a3818');
+      g.addColorStop(0.50, '#d4a85a');
+      g.addColorStop(0.65, '#5a3818');
+      g.addColorStop(1,    '#0a0805');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 256);
+      // 6 处吊灯亮斑，让金属反射有"灯点"
+      for(let i=0;i<6;i++){
+        const x = (i + 0.5) * (512/6);
+        const r = ctx.createRadialGradient(x, 100, 0, x, 100, 60);
+        r.addColorStop(0, '#fff4d8'); r.addColorStop(1, '#fff4d800');
+        ctx.fillStyle = r; ctx.fillRect(x-60, 40, 120, 120);
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      scene.environment = pmrem.fromEquirectangular(tex).texture;
+      tex.dispose();
+    })();
+
+    // Lights — 提亮博物馆氛围
+    const ambient = new THREE.AmbientLight(0xfff0d8, 0.55);
+    scene.add(ambient);
+    const hemi = new THREE.HemisphereLight(0xffe4b8, 0x4a3018, 0.65);
+    scene.add(hemi);
+    // 整体方向光 — 模拟天窗散射
+    const dir = new THREE.DirectionalLight(0xfff0c8, 0.45);
+    dir.position.set(0, 12, 0);
+    scene.add(dir);
+
+    /* ---------- Materials (shared) ---------- */
+    const wallMarble = makeMarbleTexture({ size:512, base:'#ede2c8', vein:'#a08050', dark:'#5a4828', density:30 });
+    wallMarble.repeat.set(2, 2);
+    const wallMarbleNormal = wallMarble; // reuse as bump-ish
+    const lowerMarble = makeMarbleTexture({ size:512, base:'#3a2a1a', vein:'#a8845a', dark:'#1a1108', density:24 });
+    lowerMarble.repeat.set(3, 1);
+    const floorTex = makeFloorTexture();
+    floorTex.repeat.set(6, 18);
+    const carpetTex = makeCarpetTexture();
+    carpetTex.repeat.set(1, 12);
+
+    const matWall = new THREE.MeshStandardMaterial({
+      map: wallMarble, color: 0xffffff, roughness: 0.55, metalness: 0.05
+    });
+    const matLowerWall = new THREE.MeshStandardMaterial({
+      map: lowerMarble, color: 0xffffff, roughness: 0.4, metalness: 0.15
+    });
+    const matFloor = new THREE.MeshStandardMaterial({
+      map: floorTex, color: 0xffffff, roughness: 0.18, metalness: 0.55,
+      envMapIntensity: 1.2
+    });
+    const matCeiling = new THREE.MeshStandardMaterial({
+      color: 0xebd9b4, roughness: 0.85, metalness: 0.05
+    });
+    const matGold = new THREE.MeshStandardMaterial({
+      color: 0xd4a868, roughness: 0.25, metalness: 0.95, envMapIntensity: 1.4
+    });
+    const matGoldDark = new THREE.MeshStandardMaterial({
+      color: 0xa07838, roughness: 0.4, metalness: 0.85
+    });
+    const matBlackFrame = new THREE.MeshStandardMaterial({
+      color: 0x1a1108, roughness: 0.4, metalness: 0.6
+    });
+    const matCarpet = new THREE.MeshStandardMaterial({
+      map: carpetTex, color: 0xffffff, roughness: 0.85, metalness: 0
+    });
+    const matColumnMarble = new THREE.MeshStandardMaterial({
+      map: makeMarbleTexture({ size:512, base:'#f0e4ca', vein:'#988055', dark:'#5a4628', density:36 }),
+      roughness: 0.3, metalness: 0.15
+    });
+    const matSculpture = new THREE.MeshStandardMaterial({
+      color: 0xe8c878, roughness: 0.15, metalness: 1.0, envMapIntensity: 1.8
+    });
+    const matCrystal = new THREE.MeshStandardMaterial({
+      color: 0xfff0c8, roughness: 0.05, metalness: 0.0,
+      transparent: true, opacity: 0.6, emissive: 0xffd87a, emissiveIntensity: 0.8
+    });
+
+    /* ---------- 走廊几何 ---------- */
+    const HALL_LEN = 100;       // total z length
+    const HALL_HALF_Z = HALL_LEN/2;
+    const HALL_WIDTH = 10;
+    const HALL_HALF_W = HALL_WIDTH/2;
+    const HALL_HEIGHT = 7.5;
+
+    // 地面
+    const floorGeo = new THREE.PlaneGeometry(HALL_WIDTH, HALL_LEN);
+    const floor = new THREE.Mesh(floorGeo, matFloor);
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = 0;
+    scene.add(floor);
+
+    // 红毯
+    const carpetGeo = new THREE.PlaneGeometry(2.4, HALL_LEN-4);
+    const carpet = new THREE.Mesh(carpetGeo, matCarpet);
+    carpet.rotation.x = -Math.PI/2;
+    carpet.position.y = 0.005;
+    scene.add(carpet);
+
+    // 天花板
+    const ceilingGeo = new THREE.PlaneGeometry(HALL_WIDTH, HALL_LEN);
+    const ceiling = new THREE.Mesh(ceilingGeo, matCeiling);
+    ceiling.rotation.x = Math.PI/2;
+    ceiling.position.y = HALL_HEIGHT;
+    scene.add(ceiling);
+
+    // 藻井（凹格）
+    function buildCoffers(){
+      const cellW = 2.0, cellL = 2.0;
+      const cols = Math.floor(HALL_WIDTH/cellW);
+      const rows = Math.floor(HALL_LEN/cellL);
+      const startX = -HALL_HALF_W + cellW/2;
+      const startZ = -HALL_HALF_Z + cellL/2;
+      for(let i=0;i<cols;i++){
+        for(let j=0;j<rows;j++){
+          const x = startX + i*cellW;
+          const z = startZ + j*cellL;
+          // recess (slightly darker)
+          const recessGeo = new THREE.PlaneGeometry(cellW*0.78, cellL*0.78);
+          const recessMat = new THREE.MeshStandardMaterial({ color:0x2a1f10, roughness:0.9 });
+          const recess = new THREE.Mesh(recessGeo, recessMat);
+          recess.rotation.x = Math.PI/2;
+          recess.position.set(x, HALL_HEIGHT-0.001, z);
+          scene.add(recess);
+          // gold rosette in center
+          const rose = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.18, 0.04, 12),
+            matGold
+          );
+          rose.position.set(x, HALL_HEIGHT-0.05, z);
+          scene.add(rose);
+        }
+      }
+    }
+    buildCoffers();
+
+    // 墙壁（左右）—— 上半墙体（米色大理石）+ 下半墙体（深色大理石）+ 中间金线
+    function buildWalls(){
+      const lowerH = 1.4;
+      const upperH = HALL_HEIGHT - lowerH;
+      ['left','right'].forEach(side=>{
+        const sign = side==='left' ? -1 : 1;
+        // upper
+        const upperGeo = new THREE.PlaneGeometry(HALL_LEN, upperH);
+        const upperMesh = new THREE.Mesh(upperGeo, matWall);
+        upperMesh.position.set(sign*HALL_HALF_W, lowerH+upperH/2, 0);
+        upperMesh.rotation.y = sign>0 ? -Math.PI/2 : Math.PI/2;
+        scene.add(upperMesh);
+        // lower
+        const lowerGeo = new THREE.PlaneGeometry(HALL_LEN, lowerH);
+        const lowerMesh = new THREE.Mesh(lowerGeo, matLowerWall);
+        lowerMesh.position.set(sign*HALL_HALF_W, lowerH/2, 0);
+        lowerMesh.rotation.y = sign>0 ? -Math.PI/2 : Math.PI/2;
+        scene.add(lowerMesh);
+        // gold trim line
+        const trimGeo = new THREE.BoxGeometry(0.04, 0.06, HALL_LEN);
+        const trim = new THREE.Mesh(trimGeo, matGold);
+        trim.position.set(sign*(HALL_HALF_W-0.02), lowerH, 0);
+        scene.add(trim);
+        // crown molding (top)
+        const crownGeo = new THREE.BoxGeometry(0.18, 0.2, HALL_LEN);
+        const crown = new THREE.Mesh(crownGeo, matGoldDark);
+        crown.position.set(sign*(HALL_HALF_W-0.06), HALL_HEIGHT-0.12, 0);
+        scene.add(crown);
+        // baseboard
+        const baseGeo = new THREE.BoxGeometry(0.1, 0.12, HALL_LEN);
+        const base = new THREE.Mesh(baseGeo, matBlackFrame);
+        base.position.set(sign*(HALL_HALF_W-0.02), 0.06, 0);
+        scene.add(base);
+      });
+      // end walls (front and back)
+      const endGeo = new THREE.PlaneGeometry(HALL_WIDTH, HALL_HEIGHT);
+      const endNear = new THREE.Mesh(endGeo, matWall);
+      endNear.position.set(0, HALL_HEIGHT/2, HALL_HALF_Z);
+      endNear.rotation.y = Math.PI;
+      scene.add(endNear);
+      const endFar = new THREE.Mesh(endGeo, matWall);
+      endFar.position.set(0, HALL_HEIGHT/2, -HALL_HALF_Z);
+      scene.add(endFar);
+    }
+    buildWalls();
+
+    /* ---------- 立柱 ---------- */
+    function buildColumn(x, z){
+      const group = new THREE.Group();
+      // base
+      const base = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.25, 1.0), matLowerWall);
+      base.position.y = 0.125; group.add(base);
+      const base2 = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.12, 0.85), matGoldDark);
+      base2.position.y = 0.31; group.add(base2);
+      // shaft (fluted column - faked with cylinder)
+      const shaft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.34, HALL_HEIGHT-1.0, 24, 1, false),
+        matColumnMarble
+      );
+      shaft.position.y = 0.37 + (HALL_HEIGHT-1.0)/2;
+      group.add(shaft);
+      // capital (Doric-ish)
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.36, 0.18, 16), matColumnMarble);
+      cap.position.y = HALL_HEIGHT - 0.55;
+      group.add(cap);
+      const cap2 = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.12, 0.95), matGold);
+      cap2.position.y = HALL_HEIGHT - 0.4;
+      group.add(cap2);
+      const cap3 = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.18, 1.05), matLowerWall);
+      cap3.position.y = HALL_HEIGHT - 0.25;
+      group.add(cap3);
+      group.position.set(x, 0, z);
+      scene.add(group);
+    }
+    // 立柱：错开作品位置（作品在 z=±18,±6，柱子放在中间空位）
+    const colZ = [-30, -18, -6, 6, 18, 30];
+    colZ.forEach(z=>{
+      buildColumn(-HALL_HALF_W+0.45, z);
+      buildColumn( HALL_HALF_W-0.45, z);
+    });
+
+    /* ---------- 吊灯 ---------- */
+    function buildChandelier(x, y, z){
+      const group = new THREE.Group();
+      // chain
+      const chain = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 1.4, 6),
+        matGoldDark
+      );
+      chain.position.y = 0;
+      group.add(chain);
+      // cap on chain
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.06,0.1,8), matGold);
+      cap.position.y = 0.7; group.add(cap);
+      // top ring
+      const topRing = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.025, 8, 16), matGold);
+      topRing.rotation.x = Math.PI/2;
+      topRing.position.y = -0.7; group.add(topRing);
+      // arms / drops
+      const dropCount = 8;
+      for(let i=0;i<dropCount;i++){
+        const ang = (i/dropCount) * Math.PI*2;
+        const px = Math.cos(ang)*0.35, pz = Math.sin(ang)*0.35;
+        const drop = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.09, 0),
+          matCrystal
+        );
+        drop.position.set(px, -0.85, pz);
+        group.add(drop);
+        // long crystal
+        const long = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.025, 0.04, 0.2, 6),
+          matCrystal
+        );
+        long.position.set(px, -1.0, pz);
+        group.add(long);
+      }
+      // central bulb (point light source)
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), matCrystal);
+      bulb.position.y = -0.85; group.add(bulb);
+      // light
+      const light = new THREE.PointLight(0xffe4b8, 4.5, 22, 1.6);
+      light.position.y = -0.85;
+      group.add(light);
+      group.position.set(x, y, z);
+      scene.add(group);
+    }
+    // chandeliers at intervals
+    [-24, -12, 0, 12, 24].forEach(z=> buildChandelier(0, HALL_HEIGHT-1.2, z));
+
+    /* ---------- 端景：黄金球体雕塑 ---------- */
+    function buildEndSculpture(){
+      const x = 0, z = -HALL_HALF_Z + 1.2;
+      // pedestal
+      const ped = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 1.1, 1.2),
+        matLowerWall
+      );
+      ped.position.set(x, 0.55, z); scene.add(ped);
+      const pedTop = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.06, 1.35), matGold);
+      pedTop.position.set(x, 1.13, z); scene.add(pedTop);
+      // gold sphere
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 48, 32),
+        matSculpture
+      );
+      sphere.position.set(x, 1.65, z);
+      scene.add(sphere);
+      // small spotlight on it
+      const spot = new THREE.SpotLight(0xfff0c8, 8, 6, Math.PI*0.18, 0.6, 1.2);
+      spot.position.set(x, HALL_HEIGHT-0.6, z+0.5);
+      spot.target.position.set(x, 1.65, z);
+      scene.add(spot); scene.add(spot.target);
+      // back panel decoration
+      const panel = new THREE.Mesh(
+        new THREE.PlaneGeometry(3, 4.5),
+        matLowerWall
+      );
+      panel.position.set(x, 3.2, z-0.7);
+      scene.add(panel);
+      // gold border on panel
+      const borderTop = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.06, 0.04), matGold);
+      borderTop.position.set(x, 5.45, z-0.69); scene.add(borderTop);
+      const borderBot = borderTop.clone(); borderBot.position.y = 0.95; scene.add(borderBot);
+      const borderL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 4.5, 0.04), matGold);
+      borderL.position.set(x-1.5, 3.2, z-0.69); scene.add(borderL);
+      const borderR = borderL.clone(); borderR.position.x = x+1.5; scene.add(borderR);
+    }
+    buildEndSculpture();
+
+    /* ---------- 长椅 ---------- */
+    function buildBench(z){
+      const g = new THREE.Group();
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.6), matLowerWall);
+      seat.position.y = 0.5; g.add(seat);
+      const cushion = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.1, 0.5), new THREE.MeshStandardMaterial({color:0x5a1a1f, roughness:0.7}));
+      cushion.position.y = 0.61; g.add(cushion);
+      // legs
+      [[-0.95,-0.22],[0.95,-0.22],[-0.95,0.22],[0.95,0.22]].forEach(([x,zo])=>{
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), matGoldDark);
+        leg.position.set(x, 0.25, zo); g.add(leg);
+      });
+      g.position.set(0, 0, z);
+      scene.add(g);
+    }
+    buildBench(-15);
+    buildBench(15);
+
+    /* ---------- 作品（带相框） ---------- */
+    const artworkMeshes = [];
+    // 各项目的画框长宽比(宽/高)— 与项目类型匹配,墙面节奏更丰富
+    const ASPECTS = {
+      'lyrics-vault': 1.35,
+      'soundtrail': 1.30,
+      'fmemo': 0.85,
+      'blog': 1.25,
+      'fportfolio': 0.78,
+      'ftab': 0.62,
+      'fcomp': 0.90,
+      'fconv': 1.10,
+      'singsinghow': 0.72,
+      'nexpass': 0.70
+    };
+
+    const textureLoader = new THREE.TextureLoader();
+    // crossOrigin 只对远程 http(s) URL 设 'anonymous';本地相对路径不设,
+    // 否则 file:// 协议下浏览器会用 CORS 预检拒绝加载,画框就只剩程序化海报
+
+    function buildArtwork(work){
+      const aspect = ASPECTS[work.id] || 0.8;
+      // 自适应:在 MAX_W × MAX_H 边界框内保持比例(两个维度都受 max 约束,避免方形作品高度冲到 MAX_W)
+      const MAX_W = 2.85, MAX_H = 2.6;
+      let artW = Math.min(MAX_W, MAX_H * aspect);
+      let artH = artW / aspect;
+
+      // 画面材质 — 加 emissiveMap 让画作自发光，远距离也清晰可辨
+      const placeholderTex = makeArtTexture(work, aspect);
+      const canvasMat = new THREE.MeshStandardMaterial({
+        map: placeholderTex,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.5,
+        emissiveMap: placeholderTex,
+        roughness: 0.55,
+        metalness: 0.0,
+        envMapIntensity: 0.3
+      });
+
+      const group = new THREE.Group();
+      const fThick = 0.24, fDepth = 0.20;
+
+      // 黑色衬底（背板）
+      const back = new THREE.Mesh(
+        new THREE.BoxGeometry(artW + fThick*2 + 0.10, artH + fThick*2 + 0.10, 0.04),
+        matBlackFrame
+      );
+      back.position.z = -0.10;
+      group.add(back);
+
+      // 工具：构建带挖洞的矩形 Shape
+      const buildFrameShape = (outerW, outerH, innerW, innerH)=>{
+        const shape = new THREE.Shape();
+        shape.moveTo(-outerW/2, -outerH/2);
+        shape.lineTo( outerW/2, -outerH/2);
+        shape.lineTo( outerW/2,  outerH/2);
+        shape.lineTo(-outerW/2,  outerH/2);
+        shape.closePath();
+        const hole = new THREE.Path();
+        hole.moveTo(-innerW/2, -innerH/2);
+        hole.lineTo(-innerW/2,  innerH/2);
+        hole.lineTo( innerW/2,  innerH/2);
+        hole.lineTo( innerW/2, -innerH/2);
+        hole.closePath();
+        shape.holes.push(hole);
+        return shape;
+      };
+
+      // 主画框 — ExtrudeGeometry 带深倒角，呈现模铸金边的厚实质感
+      const mainShape = buildFrameShape(artW + fThick*2, artH + fThick*2, artW + 0.04, artH + 0.04);
+      const mainGeo = new THREE.ExtrudeGeometry(mainShape, {
+        depth: fDepth, bevelEnabled: true,
+        bevelThickness: 0.06, bevelSize: 0.05, bevelSegments: 6, steps: 1
+      });
+      const mainFrame = new THREE.Mesh(mainGeo, matGold);
+      mainFrame.position.z = -0.04;
+      group.add(mainFrame);
+
+      // 内圈深金窄边（带小倒角），与主框形成层次
+      const innerShape = buildFrameShape(artW + 0.12, artH + 0.12, artW + 0.005, artH + 0.005);
+      const innerGeo = new THREE.ExtrudeGeometry(innerShape, {
+        depth: 0.05, bevelEnabled: true,
+        bevelThickness: 0.018, bevelSize: 0.016, bevelSegments: 4, steps: 1
+      });
+      const innerFrame = new THREE.Mesh(innerGeo, matGoldDark);
+      innerFrame.position.z = fDepth - 0.04;
+      group.add(innerFrame);
+
+      // 深红丝绒内衬（画与金框之间细缝）
+      const linerShape = buildFrameShape(artW + 0.06, artH + 0.06, artW + 0.005, artH + 0.005);
+      const linerGeo = new THREE.ExtrudeGeometry(linerShape, {
+        depth: 0.012, bevelEnabled: false, steps: 1
+      });
+      const linerMat = new THREE.MeshStandardMaterial({ color:0x3a0f12, roughness:0.95, metalness:0 });
+      const linerMesh = new THREE.Mesh(linerGeo, linerMat);
+      linerMesh.position.z = fDepth - 0.06;
+      group.add(linerMesh);
+
+      // 4 角玫瑰花饰
+      const buildCornerRosette = ()=>{
+        const r = new THREE.Group();
+        // 外圈金环
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.085, 0.009, 10, 28),
+          matGoldDark
+        );
+        ring.position.z = -0.01;
+        r.add(ring);
+        // 中心半球（花心）
+        const hub = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 16), matGold);
+        hub.scale.set(1, 1, 0.55);
+        r.add(hub);
+        // 8 瓣花饰（扁球）
+        for(let i=0;i<8;i++){
+          const a = (i/8)*Math.PI*2;
+          const petal = new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 10), matGold);
+          petal.position.set(Math.cos(a)*0.06, Math.sin(a)*0.06, 0);
+          petal.scale.set(1.55, 0.85, 0.35);
+          petal.rotation.z = a;
+          r.add(petal);
+        }
+        // 中心宝石（亮金球）
+        const gem = new THREE.Mesh(
+          new THREE.SphereGeometry(0.022, 14, 12),
+          new THREE.MeshStandardMaterial({ color:0xf4d878, roughness:0.12, metalness:1.0, envMapIntensity:2.2 })
+        );
+        gem.position.z = 0.022;
+        r.add(gem);
+        return r;
+      };
+      for(let cx of [-1, 1]) for(let cy of [-1, 1]){
+        const ros = buildCornerRosette();
+        ros.position.set(
+          cx * (artW/2 + fThick - 0.05),
+          cy * (artH/2 + fThick - 0.05),
+          fDepth + 0.04
+        );
+        group.add(ros);
+      }
+
+      // 画面（凹入框内）
+      const canvasMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(artW, artH),
+        canvasMat
+      );
+      canvasMesh.position.z = fDepth - 0.04;
+      canvasMesh.userData.workId = work.id;
+      group.add(canvasMesh);
+      artworkMeshes.push(canvasMesh);
+      work._canvasMesh = canvasMesh;
+
+      // 名牌
+      const plaque = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.2, 0.04), matGoldDark
+      );
+      plaque.position.set(0, -(artH/2 + fThick + 0.22), fDepth + 0.04);
+      group.add(plaque);
+      const pcv = document.createElement('canvas'); pcv.width = 320; pcv.height = 96;
+      const pctx = pcv.getContext('2d');
+      pctx.fillStyle = '#1a1108'; pctx.fillRect(0,0,320,96);
+      pctx.fillStyle = '#d4b878';
+      pctx.font = '600 22px "Noto Serif SC", serif'; pctx.textAlign = 'center';
+      pctx.fillText(work.title, 160, 36);
+      pctx.font = 'italic 13px Georgia, serif';
+      pctx.fillStyle = '#a8956a';
+      pctx.fillText(work.catEn + ' · ' + work.year, 160, 70);
+      const ptex = new THREE.CanvasTexture(pcv);
+      ptex.colorSpace = THREE.SRGBColorSpace;
+      const plaqueText = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.65, 0.18),
+        new THREE.MeshBasicMaterial({ map: ptex, transparent: true })
+      );
+      plaqueText.position.set(0, -(artH/2 + fThick + 0.22), fDepth + 0.07);
+      group.add(plaqueText);
+
+      // 上墙 — 中心 y=3.0m,最大画框(MAX_H=2.6)的牌子离地约 1.24m,清晰可见且不拖地
+      const sign = work.side==='left' ? -1 : 1;
+      const FRAME_Y = 3.0;
+      group.position.set(sign*(HALL_HALF_W - 0.05), FRAME_Y, work.z);
+      group.rotation.y = sign>0 ? -Math.PI/2 : Math.PI/2;
+      scene.add(group);
+
+      // 聚光灯（明亮、暖色、聚焦在作品上）
+      const spot = new THREE.SpotLight(0xfff4d8, 18, 7, Math.PI*0.26, 0.45, 1.2);
+      spot.position.set(sign*(HALL_HALF_W - 1.6), HALL_HEIGHT-0.5, work.z);
+      spot.target.position.set(sign*(HALL_HALF_W - 0.1), FRAME_Y, work.z);
+      scene.add(spot); scene.add(spot.target);
+      // 反向补光，让画面前沿不死黑
+      const fill = new THREE.PointLight(0xfff0d0, 0.9, 4, 2);
+      fill.position.set(sign*(HALL_HALF_W - 2.0), FRAME_Y, work.z);
+      scene.add(fill);
+
+      // 已不再依赖外部图片 — 程序化"海报"贴图就是最终画面
+      // 但若 work.image 提供了真实图片 URL,异步加载并替换为真实画面
+      // 贴图加载延迟到 ENTER 之后(让图片选择器有机会先把 work.image 替换成 FileReader data URL)
+      work._loadTexture = () => {
+        if (!work.image) return;
+        textureLoader.crossOrigin = /^https?:\/\//.test(work.image) ? 'anonymous' : undefined;
+        textureLoader.load(
+          work.image,
+          (tex)=>{
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 8;
+            if(tex.image && tex.image.width && tex.image.height){
+              const imgAR = tex.image.width / tex.image.height;
+              const frameAR = artW / artH;
+              let rx = 1, ry = 1, ox = 0, oy = 0;
+              if(imgAR > frameAR){
+                rx = frameAR / imgAR;
+                ox = (1 - rx) / 2;
+              } else {
+                ry = imgAR / frameAR;
+                oy = (1 - ry) / 2;
+              }
+              tex.repeat.set(rx, ry);
+              tex.offset.set(ox, oy);
+            }
+            canvasMat.map = tex;
+            canvasMat.emissiveMap = tex;
+            canvasMat.emissiveIntensity = 0.4;
+            canvasMat.needsUpdate = true;
+          },
+          undefined,
+          ()=>{ /* 加载失败:保留程序化海报作为兜底 */ }
+        );
+      };
+    }
+    works.forEach(buildArtwork);
+
+    /* ---------- 尘埃粒子 ---------- */
+    function buildParticles(){
+      const count = 250;
+      const pos = new Float32Array(count*3);
+      for(let i=0;i<count;i++){
+        pos[i*3] = (Math.random()-.5) * (HALL_WIDTH-2);
+        pos[i*3+1] = Math.random() * (HALL_HEIGHT-1) + 0.5;
+        pos[i*3+2] = (Math.random()-.5) * HALL_LEN;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0xffd9a0, size: 0.025, transparent:true, opacity:0.5,
+        sizeAttenuation:true, depthWrite:false, blending: THREE.AdditiveBlending
+      });
+      const points = new THREE.Points(geo, mat);
+      scene.add(points);
+      return { points, pos, count };
+    }
+    const particles = buildParticles();
+
+    /* ---------- 入口屏 装饰花纹 ---------- */
+    // (entry already set by HTML)
+
+    /* ============================================================
+     * 控制器：左键拖动看 · WASD 行走 · 滚轮前后 · 鼠标始终可见
+     * ============================================================ */
+    scene.add(camera);
+    camera.position.set(0, 1.65, 30);
+    camera.rotation.order = 'YXZ';
+
+    const cam = { yaw: 0, pitch: 0 };
+    let mouseX = innerWidth/2, mouseY = innerHeight/2;
+    let isDragging = false, dragMoved = false;
+    let dragMoveCnt = 0;
+
+    // 兼容：脚本下文还引用 controls.isLocked（旧锁定逻辑）
+    const controls = { isLocked: false, lock(){}, unlock(){} };
+
+    document.body.style.cursor = 'grab';
+
+    renderer.domElement.addEventListener('mousedown', e=>{
+      if(e.button !== 0 || detailVisible) return;
+      isDragging = true;
+      dragMoved = false;
+      dragMoveCnt = 0;
+      document.body.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mouseup', e=>{
+      if(e.button !== 0) return;
+      isDragging = false;
+      document.body.style.cursor = hoveredWorkId ? 'pointer' : 'grab';
+    });
+    window.addEventListener('mousemove', e=>{
+      const dx = e.clientX - mouseX;
+      const dy = e.clientY - mouseY;
+      if(isDragging){
+        cam.yaw   -= dx * 0.0035;
+        cam.pitch -= dy * 0.0035;
+        cam.pitch = Math.max(-Math.PI/2.6, Math.min(Math.PI/2.6, cam.pitch));
+        dragMoveCnt += Math.abs(dx) + Math.abs(dy);
+        if(dragMoveCnt > 8) dragMoved = true;
+      }
+      // 让 hand-lbl 跟随鼠标
+      const lbl = document.getElementById('hand-lbl');
+      if(lbl){ lbl.style.left = e.clientX + 'px'; lbl.style.top = e.clientY + 'px'; }
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    const keys = { w:false, a:false, s:false, d:false };
+    window.addEventListener('keydown', e=>{
+      const k = e.key.toLowerCase();
+      if(e.key === 'Escape'){
+        if(detailVisible){ location.hash = ''; }
+        else { showExitMenu(); }
+        return;
+      }
+      if(detailVisible) return;
+      if(k==='w' || e.key==='ArrowUp') keys.w = true;
+      if(k==='s' || e.key==='ArrowDown') keys.s = true;
+      if(k==='a' || e.key==='ArrowLeft') keys.a = true;
+      if(k==='d' || e.key==='ArrowRight') keys.d = true;
+    });
+    window.addEventListener('keyup', e=>{
+      const k = e.key.toLowerCase();
+      if(k==='w' || e.key==='ArrowUp') keys.w = false;
+      if(k==='s' || e.key==='ArrowDown') keys.s = false;
+      if(k==='a' || e.key==='ArrowLeft') keys.a = false;
+      if(k==='d' || e.key==='ArrowRight') keys.d = false;
+    });
+
+    let scrollImpulse = 0;
+    window.addEventListener('wheel', e=>{
+      if(detailVisible) return;
+      scrollImpulse += -e.deltaY * 0.0018;
+      scrollImpulse = Math.max(-0.6, Math.min(0.6, scrollImpulse));
+    }, { passive: true });
+
+    function showExitMenu(){
+      document.getElementById('ebtn').textContent = '继续游览';
+      document.querySelector('.e-tag').textContent = '— 已暂停 · paused —';
+      document.getElementById('entry').style.display = 'flex';
+      requestAnimationFrame(()=>document.getElementById('entry').classList.remove('hidden'));
+    }
+
+
+    /* ============================================================
+     * 3D 手 — 用胶囊几何拼装五指，挂在相机右下，注视作品时切到指点姿态
+     * ============================================================ */
+    function buildHand(){
+      const g = new THREE.Group();
+      // 多种肤色微调
+      const skin     = new THREE.MeshStandardMaterial({ color:0xeac4a4, roughness:0.85, metalness:0 });
+      const skinWarm = new THREE.MeshStandardMaterial({ color:0xd8a888, roughness:0.85, metalness:0 });
+      const skinPale = new THREE.MeshStandardMaterial({ color:0xf2d4b8, roughness:0.85, metalness:0 });
+      const skinTip  = new THREE.MeshStandardMaterial({ color:0xe8a89c, roughness:0.80, metalness:0 });
+      const nailMat  = new THREE.MeshStandardMaterial({ color:0xf8e8d4, roughness:0.40, metalness:0.05 });
+
+      // 手掌（扁球）
+      const palm = new THREE.Mesh(new THREE.SphereGeometry(0.105, 28, 22), skin);
+      palm.scale.set(1.0, 0.42, 1.45);
+      palm.position.set(0, 0, 0.085);
+      g.add(palm);
+      // 手背指节隆起
+      const knuckles = new THREE.Mesh(new THREE.SphereGeometry(0.06, 18, 12), skinWarm);
+      knuckles.scale.set(1.55, 0.30, 0.45);
+      knuckles.position.set(0, 0.030, 0.16);
+      g.add(knuckles);
+      // 大鱼际（拇指根肌肉团）
+      const thenar = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), skinPale);
+      thenar.scale.set(1.25, 0.7, 1.5);
+      thenar.position.set(-0.062, 0.005, 0.052);
+      g.add(thenar);
+      // 小鱼际（小指根肌肉团）
+      const hypo = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 12), skin);
+      hypo.scale.set(1.1, 0.7, 1.55);
+      hypo.position.set(0.062, 0.005, 0.052);
+      g.add(hypo);
+
+      // 用球链组装手指（一节多球，自然过渡，无明显接缝）
+      function buildSphereChain(parent, length, rStart, rEnd, count, mat){
+        for(let i=0;i<count;i++){
+          const t = i/(count-1);
+          const r = rStart + (rEnd - rStart) * t;
+          const sph = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 12), mat);
+          sph.position.z = length * t;
+          parent.add(sph);
+        }
+      }
+
+      function buildFinger(x, lens){
+        const fGroup = new THREE.Group();
+        fGroup.position.set(x, 0.005, 0.18);
+        // 近节
+        const ph1 = new THREE.Group(); fGroup.add(ph1);
+        buildSphereChain(ph1, lens[0], 0.0145, 0.0135, 4, skin);
+        // 中节
+        const j1 = new THREE.Group(); j1.position.z = lens[0]; ph1.add(j1);
+        buildSphereChain(j1, lens[1], 0.0135, 0.0125, 3, skin);
+        // 末节
+        const j2 = new THREE.Group(); j2.position.z = lens[1]; j1.add(j2);
+        buildSphereChain(j2, lens[2], 0.0125, 0.010, 3, skin);
+        // 末节红润色
+        const tipFlesh = new THREE.Mesh(new THREE.SphereGeometry(0.011, 14, 12), skinTip);
+        tipFlesh.position.z = lens[2];
+        j2.add(tipFlesh);
+        // 指甲
+        const nail = new THREE.Mesh(new THREE.PlaneGeometry(0.013, 0.015), nailMat);
+        nail.rotation.x = -Math.PI/2;
+        nail.position.set(0, 0.011, lens[2]*0.75);
+        j2.add(nail);
+        return { base: fGroup, mid: j1, tip: j2 };
+      }
+
+      const fingers = [
+        buildFinger(-0.054, [0.045, 0.038, 0.030]),  // 食指
+        buildFinger(-0.018, [0.052, 0.044, 0.034]),  // 中指
+        buildFinger( 0.020, [0.048, 0.040, 0.032]),  // 无名指
+        buildFinger( 0.058, [0.038, 0.030, 0.024]),  // 小指
+      ];
+      fingers.forEach(f=>g.add(f.base));
+
+      // 拇指（侧向伸出）
+      const thumbBase = new THREE.Group();
+      thumbBase.position.set(-0.092, -0.005, 0.07);
+      thumbBase.rotation.set(0, -0.85, -0.42);
+      // 近节
+      buildSphereChain(thumbBase, 0.045, 0.016, 0.0145, 4, skin);
+      const tJ1 = new THREE.Group(); tJ1.position.z = 0.045; thumbBase.add(tJ1);
+      buildSphereChain(tJ1, 0.040, 0.0145, 0.013, 3, skin);
+      const tJ2 = new THREE.Group(); tJ2.position.z = 0.040; tJ1.add(tJ2);
+      buildSphereChain(tJ2, 0.026, 0.013, 0.011, 3, skinTip);
+      // 拇指甲
+      const tNail = new THREE.Mesh(new THREE.PlaneGeometry(0.013, 0.015), nailMat);
+      tNail.rotation.x = -Math.PI/2;
+      tNail.position.set(0, 0.012, 0.022);
+      tJ2.add(tNail);
+      g.add(thumbBase);
+
+      // 手腕（自然向画面外渐隐 — 不再用袖口/金扣）
+      const wrist1 = new THREE.Mesh(new THREE.SphereGeometry(0.075, 18, 14), skin);
+      wrist1.scale.set(1.05, 0.55, 0.5);
+      wrist1.position.set(0, -0.012, -0.04);
+      g.add(wrist1);
+      const wrist2 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 12), skinWarm);
+      wrist2.scale.set(1.0, 0.6, 0.5);
+      wrist2.position.set(0, -0.018, -0.085);
+      g.add(wrist2);
+
+      return { hand:g, fingers, thumb:{ base:thumbBase, mid:tJ1, tip:tJ2 } };
+    }
+
+    const handObj = buildHand();
+    // 用户要求去掉 3D 手 — 不挂到相机
+    // camera.add(handObj.hand);
+    const HAND_BASE = { x:0, y:0, z:0, rx:0, ry:0, rz:0 };
+
+    // 手部状态机
+    const handState = {
+      point: 0,        // 0=放松 1=指点
+      walk: 0,         // 0-1 行走融合
+      bobT: 0,         // 行走节拍
+      click: 0,        // 点击瞬间动画
+      breathT: 0,
+    };
+    const lerp = (a,b,t)=>a+(b-a)*t;
+
+    function setFingerPose(f, base, mid, tip){
+      f.base.rotation.x = base;
+      f.mid.rotation.x  = mid;
+      f.tip.rotation.x  = tip;
+    }
+
+    function updateHand(dt){ /* 已移除 3D 手 */ }
+
+
+    const keys2_unused = null;
+    // mobile
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isMobile){
+      document.getElementById('mob').classList.add('show');
+      let mfwd = false, mback = false;
+      const fwdBtn = document.getElementById('mfwd');
+      const backBtn = document.getElementById('mback');
+      const setBtn = (btn, set) => { ['touchstart','mousedown'].forEach(ev=>btn.addEventListener(ev,e=>{e.preventDefault(); set(true);})); ['touchend','mouseup','touchcancel','mouseleave'].forEach(ev=>btn.addEventListener(ev,()=>set(false))); };
+      setBtn(fwdBtn, v=>mfwd=v);
+      setBtn(backBtn, v=>mback=v);
+      // touch drag for look
+      let touchStart = null;
+      renderer.domElement.addEventListener('touchstart', e=>{
+        if(e.target !== renderer.domElement) return;
+        if(e.touches.length===1) touchStart = { x:e.touches[0].clientX, y:e.touches[0].clientY };
+      });
+      renderer.domElement.addEventListener('touchmove', e=>{
+        if(!touchStart) return;
+        const dx = e.touches[0].clientX - touchStart.x;
+        const dy = e.touches[0].clientY - touchStart.y;
+        touchStart = { x:e.touches[0].clientX, y:e.touches[0].clientY };
+        cam.yaw   -= dx * 0.004;
+        cam.pitch -= dy * 0.004;
+        cam.pitch = Math.max(-Math.PI/2.6, Math.min(Math.PI/2.6, cam.pitch));
+      });
+      renderer.domElement.addEventListener('touchend', ()=>{ touchStart = null; });
+      window.__mobileMove = ()=>({ fwd:mfwd, back:mback });
+    } else {
+      window.__mobileMove = ()=>({ fwd:false, back:false });
+    }
+
+    /* ---------- Click on artwork ---------- */
+    const raycaster = new THREE.Raycaster();
+    const screenCenter = new THREE.Vector2(0, 0);
+    let hoveredWorkId = null;
+
+    function checkHover(){
+      raycaster.setFromCamera(screenCenter, camera);
+      const hits = raycaster.intersectObjects(artworkMeshes, false);
+      if(hits.length){
+        const hit = hits[0];
+        if(hit.distance < 6){
+          const id = hit.object.userData.workId;
+          if(hoveredWorkId !== id){
+            hoveredWorkId = id;
+            document.getElementById('hand-lbl').classList.add('show');
+            const w = works.find(w=>w.id===id);
+            const cur = document.getElementById('hcurrent');
+            cur.textContent = `${w.title} — ${w.subtitle}`;
+            cur.classList.add('show');
+          }
+          return;
+        }
+      }
+      if(hoveredWorkId !== null){
+        hoveredWorkId = null;
+        document.getElementById('hand-lbl').classList.remove('show');
+        document.getElementById('hcurrent').classList.remove('show');
+      }
+    }
+
+    renderer.domElement.addEventListener('click', e=>{
+      if(detailVisible) return;
+      if(dragMoved){ dragMoved = false; return; }
+      if(hoveredWorkId){
+        location.hash = '#/work/' + hoveredWorkId;
+      }
+    });
+
+    /* ============================================================
+     * 详情页路由
+     * ============================================================ */
+    let detailVisible = false;
+    function showDetail(id){
+      const idx = works.findIndex(w=>w.id===id);
+      if(idx<0) return;
+      const w = works[idx];
+      const prev = works[(idx-1+works.length)%works.length];
+      const next = works[(idx+1)%works.length];
+      document.getElementById('dmeta').innerHTML =
+        `<span class="d-num en">${w.no}</span><span class="cn">${w.year} · ${w.cat}</span>`;
+      document.getElementById('dtitle').innerHTML = `<span style="font-family:'Golften Demo','Cormorant Garamond',Georgia,serif;letter-spacing:.06em">${w.title}</span>`;
+      document.getElementById('dsub').innerHTML =
+        `<span class="cn">${w.subtitle}</span> &nbsp;·&nbsp; <span class="en" style="font-style:italic">${w.catEn}</span>`;
+      // 没有外部图片 — 直接用程序化海报
+      const tex = makeArtTexture(w, ASPECTS[w.id] || 0.8);
+      document.getElementById('dimg').src = tex.image.toDataURL('image/jpeg', .85);
+      document.getElementById('dimg').alt = w.title;
+      document.getElementById('dimg').onerror = null;
+
+      // 构建 GitHub 链接按钮 HTML
+      const repoLink = w.repo ? `<a href="${w.repo}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:10px 28px;border:1px solid #d4b878;color:#d4b878;font-size:11px;letter-spacing:4px;margin-top:16px;text-decoration:none;transition:all .3s;background:transparent;font-family:inherit" onmouseover="this.style.background='#d4b878';this.style.color='#0a0805'" onmouseout="this.style.background='transparent';this.style.color='#d4b878'">GITHUB · 查看源码 →</a>` : '';
+      const homeLink = w.homepage ? `<a href="${w.homepage}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:10px 28px;border:1px solid rgba(212,184,120,.45);color:#a8956a;font-size:11px;letter-spacing:4px;margin-top:10px;text-decoration:none;transition:all .3s;background:transparent;font-family:inherit" onmouseover="this.style.background='rgba(212,184,120,.15)';this.style.color='#d4b878'" onmouseout="this.style.background='transparent';this.style.color='#a8956a'">HOMEPAGE · 在线演示 →</a>` : '';
+
+      document.getElementById('dtext').innerHTML = w.text.map(p=>`<p class="cn">${p}</p>`).join('') + `<div style="margin-top:40px">${repoLink} ${homeLink}</div>`;
+      document.getElementById('dinfo').innerHTML = `
+        <dt class="en">DEVELOPER · 开发者</dt>
+        <dd><span class="cn">${ARTIST.cn}</span><br><span class="en" style="color:#a8956a;font-style:italic">${ARTIST.en} · ${ARTIST.titleEn}</span></dd>
+        <dt class="en">YEAR · 年份</dt><dd class="en">${w.year}</dd>
+        <dt class="en">CATEGORY · 类别</dt>
+        <dd><span class="cn">${w.cat}</span><br><span class="en" style="color:#a8956a;font-style:italic">${w.catEn}</span></dd>
+        <dt class="en">MEDIUM · 技术栈</dt><dd class="cn">${w.medium}</dd>
+        <dt class="en">SCOPE · 规模</dt><dd class="cn">${w.size}</dd>
+        <dt class="en">CLIENT · 类型</dt>
+        <dd><span class="cn">${w.client}</span><br><span class="en" style="color:#a8956a;font-style:italic">${w.clientEn}</span></dd>
+        <dt class="en">REPO · 仓库</dt>
+        <dd style="word-break:break-all"><a href="${w.repo || '#'}" target="_blank" style="color:#d4b878;text-decoration:none;font-size:11px">${w.repo ? w.repo.replace('https://github.com/','') : '—'}</a></dd>
+      `;
+      document.getElementById('dprevttl').innerHTML = `<span style="font-family:'Golften Demo','Cormorant Garamond',Georgia,serif;letter-spacing:.04em">${prev.title}</span>`;
+      document.getElementById('dnextttl').innerHTML = `<span style="font-family:'Golften Demo','Cormorant Garamond',Georgia,serif;letter-spacing:.04em">${next.title}</span>`;
+      document.getElementById('dprev').onclick = ()=> location.hash = '#/work/' + prev.id;
+      document.getElementById('dnext').onclick = ()=> location.hash = '#/work/' + next.id;
+      document.getElementById('detail').classList.add('visible');
+      document.getElementById('detail').scrollTop = 0;
+      detailVisible = true;
+    }
+    function hideDetail(){
+      document.getElementById('detail').classList.remove('visible');
+      detailVisible = false;
+    }
+    document.getElementById('dback').onclick = ()=> {
+      location.hash = '';
+    };
+
+    function handleHash(){
+      const m = location.hash.match(/^#\/work\/(.+)$/);
+      if(m) showDetail(m[1]);
+      else hideDetail();
+    }
+    window.addEventListener('hashchange', handleHash);
+
+    /* ============================================================
+     * 入口 & 加载流程
+     * ============================================================ */
+    const lfill = document.getElementById('lfill');
+    const lpct = document.getElementById('lpct');
+    function setProgress(p){
+      lfill.style.width = (p*100).toFixed(0)+'%';
+      lpct.textContent = '载入中 · '+(p*100).toFixed(0)+'%';
+    }
+
+    let prog = 0;
+    window.__museumBooted = true;   // 标记脚本已成功执行到此处（用于 CDN 超时检测）
+    const interval = setInterval(()=>{
+      prog = Math.min(1, prog + 0.04 + Math.random()*0.06);
+      setProgress(prog);
+      if(prog>=1){
+        clearInterval(interval);
+        setTimeout(()=>{
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('entry').style.display = 'flex';
+          handleHash();
+        }, 250);
+      }
+    }, 80);
+
+    /* ============================================================
+     * 程序化海报已是最终画面，不需要加载额外图片
+     * ============================================================ */
+    function loadAllArtworkTextures() {
+      works.forEach((w, i) => {
+        // 程序化海报已是最终画面 — 不需要加载外部图片
+        if (w._loadTexture) w._loadTexture();
+      });
+    }
+
+    document.getElementById('ebtn').addEventListener('click', ()=>{
+      loadAllArtworkTextures();
+      document.getElementById('entry').classList.add('hidden');
+      setTimeout(()=>{ document.getElementById('entry').style.display = 'none'; }, 800);
+      document.getElementById('hud').classList.add('visible');
+      document.getElementById('exit-btn').classList.add('show');
+      document.getElementById('ctrl-panel').classList.add('show');
+      setTimeout(()=>{
+        document.getElementById('ebtn').textContent = '进入展厅';
+        document.querySelector('.e-tag').textContent = '— frontend · full-stack · open source · MMXXVI —';
+      }, 900);
+    });
+
+    // 退出按钮（右上角始终可见）
+    document.getElementById('exit-btn').addEventListener('click', ()=>{
+      if(detailVisible) location.hash = '';
+      showExitMenu();
+    });
+
+    /* ============================================================
+     * 主循环
+     * ============================================================ */
+    const clock = new THREE.Clock();
+    function animate(){
+      requestAnimationFrame(animate);
+      const dt = Math.min(0.05, clock.getDelta());
+
+      // 应用相机旋转 — 由 cam.yaw / cam.pitch 驱动
+      camera.rotation.set(cam.pitch, cam.yaw, 0);
+
+      // movement
+      if(!detailVisible){
+        const speed = 4.2; // m/s
+        const forward = new THREE.Vector3(-Math.sin(cam.yaw), 0, -Math.cos(cam.yaw));
+        const right = new THREE.Vector3(Math.cos(cam.yaw), 0, -Math.sin(cam.yaw));
+
+        const mob = window.__mobileMove();
+        if(keys.w || mob.fwd) camera.position.addScaledVector(forward, speed*dt);
+        if(keys.s || mob.back) camera.position.addScaledVector(forward, -speed*dt);
+        if(keys.a) camera.position.addScaledVector(right, -speed*dt);
+        if(keys.d) camera.position.addScaledVector(right,  speed*dt);
+
+        // scroll wheel impulse
+        if(Math.abs(scrollImpulse) > 0.001){
+          camera.position.addScaledVector(forward, scrollImpulse * 8 * dt * 4);
+          scrollImpulse *= Math.pow(0.001, dt);
+        }
+
+        // constrain to corridor
+        const M = 1.5;
+        camera.position.x = Math.max(-HALL_HALF_W+M, Math.min(HALL_HALF_W-M, camera.position.x));
+        camera.position.z = Math.max(-HALL_HALF_Z+M, Math.min(HALL_HALF_Z-M, camera.position.z));
+        camera.position.y = 1.65;
+
+        checkHover();
+
+        // progress bar based on z
+        const t = 1 - (camera.position.z + HALL_HALF_Z) / HALL_LEN;
+        document.getElementById('hfill').style.width = (Math.max(0,Math.min(1,t))*100).toFixed(1)+'%';
+      }
+
+      // 3D 手 — 即使在详情页打开时也保持自然回到放松姿态
+      updateHand(dt);
+
+      // particles drift
+      const positions = particles.points.geometry.attributes.position.array;
+      const time = clock.getElapsedTime();
+      for(let i=0;i<particles.count;i++){
+        positions[i*3+1] += Math.sin(time*0.3 + i)*0.0015;
+        positions[i*3] += Math.cos(time*0.2 + i*1.3)*0.0008;
+      }
+      particles.points.geometry.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    /* resize */
+    window.addEventListener('resize', ()=>{
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+  </script>
+</body>
+</html>
