@@ -430,10 +430,10 @@ fl.position.set(0, 6, -HL);
 scene.add(fl);
 
 // 展台聚焦光
-const sp = new THREE.SpotLight(0xd0d8e0, 0.3, 10, Math.PI*0.25, 0.6, 1.2);
-sp.position.set(0, H, -HL+2);
-sp.target.position.set(0, 0.5, -HL+1.2);
-scene.add(sp); scene.add(sp.target);
+const spot = new THREE.SpotLight(0xd0d8e0, 0.3, 10, Math.PI*0.25, 0.6, 1.2);
+spot.position.set(0, H, -HL+2);
+spot.target.position.set(0, 0.5, -HL+1.2);
+scene.add(spot); scene.add(spot.target);
 
 /* ============================================================
  * 6. 入口两侧短墙
@@ -504,10 +504,10 @@ function showExit(){
 
 /* 加载流程 */
 const lfill=document.getElementById('lfill'), lpct=document.getElementById('lpct');
-function sp(p){ lfill.style.width=(p*100).toFixed(0)+'%'; lpct.textContent='载入中 · '+(p*100).toFixed(0)+'%'; }
+function setProg(p){ lfill.style.width=(p*100).toFixed(0)+'%'; lpct.textContent='载入中 · '+(p*100).toFixed(0)+'%'; }
 let pr=0;
 const li = setInterval(()=>{
-  pr=Math.min(1,pr+0.03+Math.random()*0.05); sp(pr);
+  pr=Math.min(1,pr+0.03+Math.random()*0.05); setProg(pr);
   if(pr>=1){ clearInterval(li); setTimeout(()=>{ document.getElementById('loading').classList.add('hidden'); document.getElementById('entry').style.display='flex'; },200); }
 },80);
 
