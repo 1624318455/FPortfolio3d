@@ -63,7 +63,7 @@
   };
   window.addEventListener('error', e => se(e.message));
   window.addEventListener('unhandledrejection', e => se('Promise: '+(e.reason?.message||e.reason)));
-  setTimeout(()=>{ if(!window.__booted) se('CDN加载超时'); }, 12000);
+  setTimeout(()=>{ if(!window.__booted) se('CDN加载超时，请刷新或检查网络'); }, 30000);
 })();
 </script>
 <script type="module">
@@ -71,9 +71,9 @@
  * CDN fallback加载 Three.js
  * ============================================================ */
 const CDNS = [
-  'https://unpkg.com/three@0.160.0/build/three.module.js',
   'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-  'https://esm.sh/three@0.160.0'
+  'https://esm.sh/three@0.160.0',
+  'https://unpkg.com/three@0.160.0/build/three.module.js'
 ];
 let THREE = null;
 for(const url of CDNS){
