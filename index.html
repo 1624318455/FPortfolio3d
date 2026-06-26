@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <title>博物馆长廊</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#0e0e10;color:#d4d0c8;font-family:Georgia,serif;user-select:none}
-#app{position:fixed;inset:0}
-canvas{display:block;outline:none}
+#app{position:fixed;inset:0}canvas{display:block;outline:none}
 #loading{position:fixed;inset:0;background:#0e0e10;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;transition:opacity 1.2s}
 #loading.hidden{opacity:0;pointer-events:none}
 .lt{font-size:22px;letter-spacing:10px;color:#b8b0a0;font-weight:300;margin-bottom:10px}
@@ -30,298 +27,247 @@ canvas{display:block;outline:none}
 .hl{font-size:8px;color:#6a6865;letter-spacing:3px;text-shadow:0 1px 2px rgba(0,0,0,.85)}
 .hbar{width:200px;height:1px;background:rgba(180,176,168,.25)}
 .hfill{height:2px;background:#b8b0a0;width:0;transition:width .2s;border-radius:1px}
-</style>
-</head>
+</style></head>
 <body>
 <div id="app"></div>
-<div id="loading">
-  <div class="lt">博物馆长廊</div>
-  <div class="ls">MUSEUM GALLERY</div>
-  <div class="lb"><div class="lf" id="lfill"></div></div>
-  <div class="lp" id="lpct">载入中 · 0%</div>
-</div>
-<div id="entry" style="display:none">
-  <div class="el"></div>
-  <div class="et">博物馆长廊</div>
-  <div class="es">MUSEUM GALLERY</div>
-  <button class="eb" id="ebtn">ENTER</button>
-  <div class="etip">WASD行走 · 鼠标环顾 · 滚轮前后</div>
-</div>
-<div id="hud">
-  <div class="hb">
-    <div class="hl">ENTRANCE</div>
-    <div class="hbar"><div class="hfill" id="hfill"></div></div>
-    <div class="hl">FINALE</div>
-  </div>
-</div>
+<div id="loading"><div class="lt">博物馆长廊</div><div class="ls">MUSEUM GALLERY</div><div class="lb"><div class="lf" id="lfill"></div></div><div class="lp" id="lpct">载入中 · 0%</div></div>
+<div id="entry" style="display:none"><div class="el"></div><div class="et">博物馆长廊</div><div class="es">MUSEUM GALLERY</div><button class="eb" id="ebtn">ENTER</button><div class="etip">WASD行走 · 鼠标环顾 · 滚轮前后</div></div>
+<div id="hud"><div class="hb"><div class="hl">ENTRANCE</div><div class="hbar"><div class="hfill" id="hfill"></div></div><div class="hl">FINALE</div></div></div>
 <script>
-(function(){
-  const se=function(m){const p=document.getElementById('lpct');if(p)p.innerHTML='<span style="color:#c88;font-size:11px">⚠ '+m+'</span>';console.error('[gallery]',m);};
-  window.onerror=function(e){se(e.message||String(e));};
-  window.onunhandledrejection=function(e){se('Promise: '+(e.reason?.message||e.reason));};
-  setTimeout(function(){if(!window.__booted)se('CDN加载超时，请刷新重试');},30000);
-})();
+(function(){var se=function(m){var p=document.getElementById('lpct');if(p)p.innerHTML='<span style=\"color:#c88;font-size:11px\">⚠ '+m+'</span>';console.error('[gallery]',m);};
+window.onerror=function(e){se(e.message||String(e));};
+window.onunhandledrejection=function(e){se('Promise: '+(e.reason?.message||e.reason));};
+setTimeout(function(){if(!window.__booted)se('CDN超时，请刷新');},35000);})();
 </script>
 <script type="module">
 /* ========== CDN fallback ========== */
 const CDNS=[
   'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-  'https://esm.sh/three@0.160.0',
-  'https://unpkg.com/three@0.160.0/build/three.module.js'
+  'https://esm.sh/three@0.160.0','https://unpkg.com/three@0.160.0/build/three.module.js'
 ];
-let THREE=null;
+var THREE=null;
 for(const url of CDNS){
-  try{
-    document.getElementById('lpct').textContent='加载 '+new URL(url).host+' …';
-    THREE=await import(url); break;
-  }catch(e){console.warn('[gallery] CDN失败:',url);}
+  try{document.getElementById('lpct').textContent='加载 '+new URL(url).host+'…';THREE=await import(url);break;}
+  catch(e){console.warn('[gallery] CDN失败:',url);}
 }
 if(!THREE)throw new Error('所有CDN不可达');
 window.__booted=true;
 
-/* ========== 程序化纹理生成 ========== */
-/* 所有纹理创建后设置 needsUpdate=true 强制刷新 */
+/* ========== 程序化纹理 ========== */
+/* 强制模板：colorSpace + wrap + needsUpdate */
 
-/* 1. 砂岩浮雕漫反射纹理 #b8a999 */
-function texSandstone(){
-  const s=512,c=document.createElement('canvas');c.width=c.height=s;
+/* 砂岩漫反射 #b8a999 */
+function createSandstoneTex(){
+  const c=document.createElement('canvas');c.width=c.height=512;
   const ctx=c.getContext('2d');
-  ctx.fillStyle='#b8a999';ctx.fillRect(0,0,s,s);
-  for(let i=0;i<60;i++){
-    const y=Math.random()*s,h=2+Math.random()*5,v=170+Math.random()*30;
-    ctx.fillStyle='rgba('+v+','+(v-8)+','+(v-15)+','+(Math.random()*0.2)+')';
-    ctx.fillRect(0,y,s,h);
-  }
-  for(let i=0;i<4000;i++){
-    const g=160+Math.random()*60;
-    ctx.fillStyle='rgba('+g+','+(g-5)+','+(g-10)+','+(Math.random()*0.12)+')';
-    ctx.fillRect(Math.random()*s,Math.random()*s,1+Math.random()*2,1+Math.random()*2);
-  }
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;
-  t.needsUpdate=true;return t;
+  ctx.fillStyle='#b8a999';ctx.fillRect(0,0,512,512);
+  for(var i=0;i<80;i++){var y=Math.random()*512,h=2+Math.random()*5,v=170+Math.random()*30;
+    ctx.fillStyle='rgba('+v+','+(v-8)+','+(v-15)+','+(Math.random()*0.2)+')';ctx.fillRect(0,y,512,h);}
+  for(var i=0;i<5000;i++){var g=160+Math.random()*60;
+    ctx.fillStyle='rgba('+g+','+(g-5)+','+(g-10)+','+(Math.random()*0.12)+')';ctx.fillRect(Math.random()*512,Math.random()*512,1+Math.random()*2,1+Math.random()*2);}
+  var t=new THREE.CanvasTexture(c);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;t.needsUpdate=true;
+  return t;
 }
 
-/* 2. 砂岩灰度凹凸高度图 */
-function texHeight(){
-  const s=256,c=document.createElement('canvas');c.width=c.height=s;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#808080';ctx.fillRect(0,0,s,s);
-  for(let i=0;i<60;i++){
-    const y=Math.random()*s,b=60+Math.random()*120;
-    ctx.fillStyle='rgba('+b+','+b+','+b+','+(Math.random()*0.5)+')';
-    ctx.fillRect(0,y,s,1+Math.random()*4);
-  }
-  for(let i=0;i<3000;i++){
-    const b=60+Math.random()*130;
-    ctx.fillStyle='rgba('+b+','+b+','+b+','+(Math.random()*0.5)+')';
-    ctx.fillRect(Math.random()*s,Math.random()*s,1,1);
-  }
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  t.needsUpdate=true;return t;
+/* 砂岩凹凸高度图 */
+function createHeightTex(){
+  var c=document.createElement('canvas');c.width=c.height=256;
+  var ctx=c.getContext('2d');
+  ctx.fillStyle='#808080';ctx.fillRect(0,0,256,256);
+  for(var i=0;i<50;i++){var y=Math.random()*256,b=60+Math.random()*120;
+    ctx.fillStyle='rgba('+b+','+b+','+b+','+(Math.random()*0.5)+')';ctx.fillRect(0,y,256,1+Math.random()*4);}
+  for(var i=0;i<4000;i++){var b=60+Math.random()*130;
+    ctx.fillStyle='rgba('+b+','+b+','+b+','+(Math.random()*0.5)+')';ctx.fillRect(Math.random()*256,Math.random()*256,1,1);}
+  var t=new THREE.CanvasTexture(c);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.needsUpdate=true;
+  return t;
 }
 
-/* 3. 地毯纹理 128x1024 横向防滑条纹 */
-function texCarpet(){
-  const w=128,h=1024,c=document.createElement('canvas');c.width=w;c.height=h;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#44484c';ctx.fillRect(0,0,w,h);
-  for(let i=0;i<h;i+=3){
-    const b=8+Math.sin(i*0.3)*3;
-    ctx.fillStyle='rgba('+(68+b)+','+(72+b)+','+(76+b)+',0.2)';
-    ctx.fillRect(0,i,w,1);
-  }
-  for(let i=0;i<2000;i++){
-    const g=70+Math.random()*10;
-    ctx.fillStyle='rgba('+g+','+(g+2)+','+(g+5)+','+(Math.random()*0.1)+')';
-    ctx.fillRect(Math.random()*w,Math.random()*h,1,1);
-  }
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  t.repeat.set(1,36);t.needsUpdate=true;return t;
+/* 地毯纹理 128x1024 横向条纹 */
+function createCarpetTex(){
+  var c=document.createElement('canvas');c.width=128;c.height=1024;
+  var ctx=c.getContext('2d');
+  ctx.fillStyle='#44484c';ctx.fillRect(0,0,128,1024);
+  for(var i=0;i<1024;i+=3){var b=8+Math.sin(i*0.3)*3;
+    ctx.fillStyle='rgba('+(68+b)+','+(72+b)+','+(76+b)+',0.2)';ctx.fillRect(0,i,128,1);}
+  for(var i=0;i<3000;i++){var g=70+Math.random()*10;
+    ctx.fillStyle='rgba('+g+','+(g+2)+','+(g+5)+','+(Math.random()*0.1)+')';ctx.fillRect(Math.random()*128,Math.random()*1024,1,1);}
+  var t=new THREE.CanvasTexture(c);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,36);t.needsUpdate=true;
+  return t;
 }
 
-/* 4. 地砖纹理 256x256 */
-function texTile(){
-  const s=256,c=document.createElement('canvas');c.width=c.height=s;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#c6c9cc';ctx.fillRect(0,0,s,s);
-  for(let i=0;i<1500;i++){
-    const v=190+Math.random()*30;
-    ctx.fillStyle='rgba('+v+','+(v+2)+','+(v+4)+','+(Math.random()*0.1)+')';
-    ctx.fillRect(Math.random()*s,Math.random()*s,1,1);
-  }
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  t.needsUpdate=true;return t;
+/* 地砖纹理 256x256 浅灰石材 */
+function createTileTex(){
+  var c=document.createElement('canvas');c.width=c.height=256;
+  var ctx=c.getContext('2d');
+  ctx.fillStyle='#c6c9cc';ctx.fillRect(0,0,256,256);
+  for(var i=0;i<2000;i++){var v=190+Math.random()*30;
+    ctx.fillStyle='rgba('+v+','+(v+2)+','+(v+4)+','+(Math.random()*0.1)+')';ctx.fillRect(Math.random()*256,Math.random()*256,1,1);}
+  var t=new THREE.CanvasTexture(c);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.needsUpdate=true;
+  return t;
 }
 
-/* 生成全部纹理 */
-const texSand=texSandstone();
-const texHgt=texHeight();
-const texCrp=texCarpet();
-const texTl=texTile();
+var texSand=createSandstoneTex(),texHgt=createHeightTex(),texCrp=createCarpetTex(),texTl=createTileTex();
 
-/* ========== 场景/相机/渲染器 ========== */
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x0e0e10);
-scene.fog=new THREE.Fog(0x0e0e10,25,55);
+/* ========== 场景/相机 ========== */
+/* 场景背景浅蓝#223344，区分黑墙和底色 */
+var scene=new THREE.Scene();
+scene.background=new THREE.Color(0x223344);
 
-/* 相机: fov=62°, pos (0,1.65,15) */
-const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,0.05,100);
-camera.position.set(0,1.65,15);camera.rotation.order='YXZ';
+/* 调试辅助线 */
+scene.add(new THREE.AxesHelper(50));
+scene.add(new THREE.GridHelper(40,20));
 
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+/* 相机 near=0.001 far=200，杜绝视锥体裁剪 */
+var camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,0.001,200);
+camera.position.set(0,1.65,18);
+camera.lookAt(0,1.65,-18);
+camera.rotation.order='YXZ';
+
+var renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.0;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
 document.getElementById('app').appendChild(renderer.domElement);
 
-/* ========== 材质系统 ========== */
-const mFloor=new THREE.MeshStandardMaterial({map:texTl,color:0xc6c9cc,roughness:0.8,metalness:0});
-const mBase=new THREE.MeshStandardMaterial({color:0xe8e3dd,roughness:0.95,metalness:0});
-const mRelief=new THREE.MeshStandardMaterial({
-  map:texSand,bumpMap:texHgt,bumpScale:0.02,
-  color:0xb8a999,roughness:0.7,metalness:0
-});
-const mBeam=new THREE.MeshStandardMaterial({color:0x3a3c3e,roughness:0.9,metalness:0});
-const mLed=new THREE.MeshStandardMaterial({
-  color:0xf8fafc,emissive:0xf8fafc,emissiveIntensity:0.6,roughness:0.3
-});
-const mPlaque=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.9,metalness:0});
-const mCarpet=new THREE.MeshStandardMaterial({map:texCrp,color:0x44484c,roughness:0.98,metalness:0});
-const mPodium=new THREE.MeshStandardMaterial({color:0xd9d2c8,roughness:0.85,metalness:0});
+/* ========== 材质 ========== */
+var mFloor=new THREE.MeshStandardMaterial({map:texTl,color:0xc6c9cc,roughness:0.8,metalness:0});
+var mBase=new THREE.MeshStandardMaterial({color:0xe8e3dd,roughness:0.95,metalness:0});
+var mRelief=new THREE.MeshStandardMaterial({map:texSand,bumpMap:texHgt,bumpScale:0.02,color:0xb8a999,roughness:0.7,metalness:0});
+var mBeam=new THREE.MeshStandardMaterial({color:0x3a3c3e,roughness:0.9,metalness:0});
+var mLed=new THREE.MeshStandardMaterial({color:0xf8fafc,emissive:0xf8fafc,emissiveIntensity:0.6,roughness:0.3});
+var mPlaque=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.9,metalness:0});
+var mCarpet=new THREE.MeshStandardMaterial({map:texCrp,color:0x44484c,roughness:0.98,metalness:0});
+var mPodium=new THREE.MeshStandardMaterial({color:0xd9d2c8,roughness:0.85,metalness:0});
 
 /* ========== 空间常量 ========== */
-const W=8,L=36,H=4.2,HW=W/2,HL=L/2;
+var W=8,L=36,H=4.2,HW=W/2,HL=L/2;
 
 /* ================================================================
- * 一、地面系统（优先构建）
+ * 1. 地面系统
  * ================================================================ */
-/* ① 1.2m 正方形地砖阵列 */
-const TS=1.2,COLS=Math.ceil(W/TS),ROWS=Math.ceil(L/TS);
-const offX=(W-COLS*TS)/2,offZ=(L-ROWS*TS)/2;
-for(let i=0;i<COLS;i++)for(let j=0;j<ROWS;j++){
-  const x=-HW+offX+i*TS+TS/2,z=-HL+offZ+j*TS+TS/2;
-  const tile=new THREE.Mesh(new THREE.BoxGeometry(TS*0.995,0.04,TS*0.995),mFloor.clone());
+var TS=1.2,COLS=Math.ceil(W/TS),ROWS=Math.ceil(L/TS);
+var ox=(W-COLS*TS)/2,oz=(L-ROWS*TS)/2;
+for(var i=0;i<COLS;i++)for(var j=0;j<ROWS;j++){
+  var x=-HW+ox+i*TS+TS/2,z=-HL+oz+j*TS+TS/2;
+  var tile=new THREE.Mesh(new THREE.BoxGeometry(TS*0.995,0.04,TS*0.995),mFloor.clone());
   tile.position.set(x,0.02,z);scene.add(tile);
 }
-/* ② 中心地毯 1.2m宽×36m长 */
-const carpet=new THREE.Mesh(new THREE.PlaneGeometry(1.2,L),mCarpet);
+/* 中心地毯 */
+var carpet=new THREE.Mesh(new THREE.PlaneGeometry(1.2,L),mCarpet);
 carpet.rotation.x=-Math.PI/2;carpet.position.set(0,0.04,0);scene.add(carpet);
 
 /* ================================================================
- * 二、左右两侧墙面（分层构建，杜绝纯黑墙面）
+ * 2. 墙面分层构建（外层镂空，浮雕正面朝向走廊）
  * ================================================================ */
-const BASE_H=0.9,PNL_W=2.4,PNL_H=3.3,PN=Math.floor(L/PNL_W),REC=0.03;
+var BH=0.9,PW=2.4,PH=3.3,PN=Math.ceil(L/PW),REC=0.03;
 
-for(let side of[-1,1]){
-  /* ① 下层墙基 0.9m — 米灰色#e8e3dd，全覆盖无黑色 */
-  const base=new THREE.Mesh(new THREE.BoxGeometry(0.08,BASE_H,L),mBase);
-  base.position.set(side*(HW-0.01),BASE_H/2,0);scene.add(base);
+for(var side=-1;side<=1;side+=2){
+  /* ① 墙基全覆盖 */
+  var base=new THREE.Mesh(new THREE.BoxGeometry(0.08,BH,L+0.1),mBase);
+  base.position.set(side*(HW-0.01),BH/2,0);scene.add(base);
 
-  /* ② 循环生成15块浮雕石板 + 解说牌 */
-  for(let p=0;p<PN;p++){
-    const zc=-HL+p*PNL_W+PNL_W/2;
+  /* ② 外围上下边框（非实心墙，预留窗口露出浮雕） */
+  // 顶部横框
+  var topFrame=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.05,L+0.1),mBase);
+  topFrame.position.set(side*(HW-0.01),H-0.025,0);scene.add(topFrame);
+  // 底部横框（墙基以上）
+  var botFrame=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.05,L+0.1),mBase);
+  botFrame.position.set(side*(HW-0.01),BH+0.025,0);scene.add(botFrame);
+  // 每隔2.4m竖框（面板分隔）
+  for(var p=0;p<=PN;p++){
+    var zc=-HL+p*PW;
+    var vertFrame=new THREE.Mesh(new THREE.BoxGeometry(0.06,PH,0.05),mBase);
+    vertFrame.position.set(side*(HW-0.01),BH+PH/2,zc);scene.add(vertFrame);
+  }
 
-    /* 浮雕面板：PlaneGeometry + 砂岩纹理 + 凹凸高度图 */
-    const pg=new THREE.PlaneGeometry(PNL_W*0.98,PNL_H);
-    const panel=new THREE.Mesh(pg,mRelief);
-    panel.position.set(side*(HW-REC),BASE_H+PNL_H/2,zc);
+  /* ③ 浮雕石板（循环，正面朝向走廊） */
+  for(var p=0;p<PN;p++){
+    var zc=-HL+p*PW+PW/2;
+    var panel=new THREE.Mesh(new THREE.PlaneGeometry(PW*0.94,PH*0.94),mRelief);
+    panel.position.set(side*(HW-REC),BH+PH/2,zc);
     panel.rotation.y=side*Math.PI/2;
     scene.add(panel);
 
-    /* 解说牌：20cm×10cm，外倾15°，白色哑光 */
-    const plaque=new THREE.Mesh(new THREE.BoxGeometry(0.01,0.10,0.20),mPlaque);
+    /* 解说牌 */
+    var plaque=new THREE.Mesh(new THREE.BoxGeometry(0.01,0.10,0.20),mPlaque);
     plaque.position.set(side*(HW-0.02),0.12,zc);
-    plaque.rotation.y=side*(Math.PI/2-0.26);
-    plaque.rotation.z=0.15*side;
+    plaque.rotation.y=side*(Math.PI/2-0.26);plaque.rotation.z=0.15*side;
     scene.add(plaque);
   }
 }
 
 /* 尽头远墙 */
-const fw=new THREE.Mesh(new THREE.BoxGeometry(W,H,0.08),mBase);
+var fw=new THREE.Mesh(new THREE.BoxGeometry(W+0.2,H+0.1,0.08),mBase);
 fw.position.set(0,H/2,-HL);scene.add(fw);
 
 /* ================================================================
- * 三、阶梯吊顶（12组×3m递进，禁止单层平板）
+ * 3. 阶梯吊顶（12组×3m递进）
  * ================================================================ */
-const UD=3,UC=L/UD,BD=0.25,SD=0.25,RH=H-SD;
-const SKW=3.2,SKL=2.6;
-const mSky=new THREE.MeshStandardMaterial({
-  color:0xe8e4dc,transparent:true,opacity:0.2,
-  roughness:0.3,metalness:0,emissive:0x8899aa,emissiveIntensity:0.05
-});
+var UD=3,UC=L/UD,BD=0.25,SD=0.25,RH=H-SD,SKW=3.2,SKL=2.6;
+var mSky=new THREE.MeshStandardMaterial({color:0xe8e4dc,transparent:true,opacity:0.2,roughness:0.3,metalness:0,emissive:0x8899aa,emissiveIntensity:0.05});
 
-for(let u=0;u<UC;u++){
-  const zs=HL-u*UD; // 每组起始Z
-
-  /* ① 深灰色横向主梁 */
-  const beam=new THREE.Mesh(new THREE.BoxGeometry(W,0.10,BD),mBeam);
+for(var u=0;u<UC;u++){
+  var zs=HL-u*UD;
+  /* 横梁 */
+  var beam=new THREE.Mesh(new THREE.BoxGeometry(W,0.10,BD),mBeam);
   beam.position.set(0,H-0.05,zs-BD/2);scene.add(beam);
-
-  /* ② 白色石膏凹框底面（比横梁低0.25m） */
-  const recessFloor=new THREE.Mesh(new THREE.BoxGeometry(W,0.04,UD-BD),mBase);
-  recessFloor.position.set(0,RH,zs-BD-(UD-BD)/2);scene.add(recessFloor);
-
-  /* ③ 阶梯垂直面 */
-  const stepRise=new THREE.Mesh(new THREE.BoxGeometry(W,SD,0.04),mBase);
-  stepRise.position.set(0,RH+SD/2,zs-BD);scene.add(stepRise);
-
-  /* ④ 凹框侧壁（左右各一） */
-  for(let s of[-1,1]){
-    const sw=new THREE.Mesh(new THREE.BoxGeometry(0.04,SD,UD-BD),mBase);
+  /* 凹框底面 */
+  var rf=new THREE.Mesh(new THREE.BoxGeometry(W,0.04,UD-BD),mBase);
+  rf.position.set(0,RH,zs-BD-(UD-BD)/2);scene.add(rf);
+  /* 阶梯垂直面 */
+  var sr=new THREE.Mesh(new THREE.BoxGeometry(W,SD,0.04),mBase);
+  sr.position.set(0,RH+SD/2,zs-BD);scene.add(sr);
+  /* 凹框侧壁 */
+  for(var s=-1;s<=1;s+=2){
+    var sw=new THREE.Mesh(new THREE.BoxGeometry(0.04,SD,UD-BD),mBase);
     sw.position.set(s*(HW-0.02),RH+SD/2,zs-BD-(UD-BD)/2);scene.add(sw);
   }
-
-  /* ⑤ 半透白玻璃天窗 3.2m×2.6m */
-  const skylight=new THREE.Mesh(new THREE.BoxGeometry(SKW,0.03,SKL),mSky);
-  skylight.position.set(0,RH+0.02,zs-BD-(UD-BD)/2);scene.add(skylight);
-
-  /* ⑥ LED灯带：前横贯 + 左右两侧 */
-  const frontLed=new THREE.Mesh(new THREE.BoxGeometry(W,0.02,0.02),mLed);
-  frontLed.position.set(0,RH-0.01,zs-BD);scene.add(frontLed);
-  for(let s of[-1,1]){
-    const ledS=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.02,UD-BD),mLed);
-    ledS.position.set(s*(HW-0.02),RH-0.01,zs-BD-(UD-BD)/2);scene.add(ledS);
+  /* 天窗 3.2×2.6m */
+  var sky=new THREE.Mesh(new THREE.BoxGeometry(SKW,0.03,SKL),mSky);
+  sky.position.set(0,RH+0.02,zs-BD-(UD-BD)/2);scene.add(sky);
+  /* LED灯带 */
+  var fl=new THREE.Mesh(new THREE.BoxGeometry(W,0.02,0.02),mLed);
+  fl.position.set(0,RH-0.01,zs-BD);scene.add(fl);
+  for(var s=-1;s<=1;s+=2){
+    var ls=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.02,UD-BD),mLed);
+    ls.position.set(s*(HW-0.02),RH-0.01,zs-BD-(UD-BD)/2);scene.add(ls);
   }
 }
 
 /* ================================================================
- * 四、长廊尽头 — 展台+石雕+人物
+ * 4. 长廊尽头
  * ================================================================ */
-/* 展台 2.2×2.2×0.9m */
-const podium=new THREE.Mesh(new THREE.BoxGeometry(2.2,0.9,2.2),mPodium);
+var podium=new THREE.Mesh(new THREE.BoxGeometry(2.2,0.9,2.2),mPodium);
 podium.position.set(0,0.45,-HL+1.2);scene.add(podium);
-const pTrim=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.02,2.3),
-  new THREE.MeshStandardMaterial({color:0xc8c0b0,roughness:0.7}));
+var pTrim=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.02,2.3),new THREE.MeshStandardMaterial({color:0xc8c0b0,roughness:0.7}));
 pTrim.position.set(0,0.91,-HL+1.2);scene.add(pTrim);
 
-/* 深色石雕 1.8m */
-const sMat=new THREE.MeshStandardMaterial({color:0x3a3835,roughness:0.65,metalness:0.1});
-const sy=0.9;
-const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.30,1.1,12),sMat);
+var sMat=new THREE.MeshStandardMaterial({color:0x3a3835,roughness:0.65,metalness:0.1}),sy=0.9;
+var torso=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.30,1.1,12),sMat);
 torso.position.set(0,sy+0.65,-HL+1.2);scene.add(torso);
-const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.32,0.15,12),sMat);
+var sh=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.32,0.15,12),sMat);
 sh.position.set(0,sy+1.18,-HL+1.2);scene.add(sh);
-const hd=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,10),sMat);
+var hd=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,10),sMat);
 hd.position.set(0,sy+1.38,-HL+1.2);scene.add(hd);
-const pl=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.45,0.10,12),sMat);
-pl.position.set(0,sy+0.05,-HL+1.2);scene.add(pl);
+var bp=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.45,0.10,12),sMat);
+bp.position.set(0,sy+0.05,-HL+1.2);scene.add(bp);
 
-/* 两个1.75m基础几何体人物 */
-function fig(x,dark){
-  const fm=new THREE.MeshStandardMaterial({color:dark?0x2a2825:0xb8b0a0,roughness:0.8,metalness:0});
-  const fh=new THREE.MeshStandardMaterial({color:0x7a6a58,roughness:0.8,metalness:0});
-  const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.25,1.2,8),fm);
+function fig(x,d){
+  var fm=new THREE.MeshStandardMaterial({color:d?0x2a2825:0xb8b0a0,roughness:0.8,metalness:0});
+  var fh=new THREE.MeshStandardMaterial({color:0x7a6a58,roughness:0.8,metalness:0});
+  var g=new THREE.Group();
+  var body=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.25,1.2,8),fm);
   body.position.y=0.7;g.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,8),fh);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,8),fh);
   head.position.y=1.45;g.add(head);
-  for(let a of[-1,1]){
-    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.5,6),fm);
-    arm.position.set(a*0.28,dark?1.15:0.85,0);
-    arm.rotation.z=a*(dark?0.3:-0.2);arm.rotation.x=dark?-0.5:0;
+  for(var a=-1;a<=1;a+=2){
+    var arm=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.5,6),fm);
+    arm.position.set(a*0.28,d?1.15:0.85,0);arm.rotation.z=a*(d?0.3:-0.2);arm.rotation.x=d?-0.5:0;
     g.add(arm);
   }
   g.position.set(x,0,-HL+1.5);scene.add(g);
@@ -329,130 +275,98 @@ function fig(x,dark){
 fig(-1.6,true);fig(1.6,false);
 
 /* ================================================================
- * 五、灯光系统（解决画面过黑）
+ * 5. 灯光（高亮度基础照明，强制照亮PBR材质）
  * ================================================================ */
-/* ① 全局环境光 暖米色 强度0.4 — 整体提亮 */
-scene.add(new THREE.AmbientLight(0xe8d8c8,0.4));
+/* ① 环境光 强度0.8 暖米色 */
+scene.add(new THREE.AmbientLight(0xf0e9e0,0.8));
 
-/* ② 天窗半球漫射光 */
-scene.add(new THREE.HemisphereLight(0xd0d8e0,0x1a1a1c,0.35));
+/* ② 半球天光 */
+scene.add(new THREE.HemisphereLight(0xe9e2d8,0x2c2c30,0.6));
 
-/* ③ 吊顶灯带位置微弱点光源 */
-for(let u=0;u<UC;u++){
-  const zs=HL-u*UD;
-  const pl=new THREE.PointLight(0xccd8e0,0.15,6,2);
+/* ③ 平行光模拟天窗自然光 */
+var dir=new THREE.DirectionalLight(0xf0ece4,0.4);
+dir.position.set(0,10,-10);scene.add(dir);
+
+/* ④ 吊顶灯带点光源 + 墙面补光 */
+for(var u=0;u<UC;u++){
+  var zs=HL-u*UD;
+  var pl=new THREE.PointLight(0xe8e0d8,0.3,8,2);
   pl.position.set(0,H-1,zs-UD/2);scene.add(pl);
+  // 左右墙面补光
+  for(var s=-1;s<=1;s+=2){
+    var wal=new THREE.PointLight(0xf0e8e0,0.15,6,2);
+    wal.position.set(s*3,H-1,zs-UD/2);scene.add(wal);
+  }
 }
 
-/* ④ 远端补充 */
-const fl=new THREE.DirectionalLight(0xd0d8e0,0.15);
-fl.position.set(0,6,-HL);scene.add(fl);
+/* ⑤ 远端补充 */
+var fill=new THREE.DirectionalLight(0xe8e0d8,0.2);
+fill.position.set(0,6,-HL);scene.add(fill);
 
-/* ⑤ 展台聚光 */
-const spot=new THREE.SpotLight(0xf8e8d8,0.5,12,Math.PI*0.2,0.6,1.2);
-spot.position.set(0,H,-HL+2.5);
+/* ⑥ 展台聚光 强度0.9 扩大照射角 */
+var spot=new THREE.SpotLight(0xf8f0e8,0.9,15,Math.PI*0.25,0.8,1.2);
+spot.position.set(0,H,-HL+3);
 spot.target.position.set(0,0.5,-HL+1.2);
 scene.add(spot);scene.add(spot.target);
 
 /* ================================================================
- * 六、入口短墙 + 控制
+ * 6. 入口短墙 + 控制
  * ================================================================ */
-for(let s of[-1,1]){
-  const ew=new THREE.Mesh(new THREE.BoxGeometry(0.08,H,0.3),mBase);
+for(var s=-1;s<=1;s+=2){
+  var ew=new THREE.Mesh(new THREE.BoxGeometry(0.08,H,0.3),mBase);
   ew.position.set(s*(HW-0.01),H/2,HL-0.15);scene.add(ew);
 }
 
-/* WASD + 鼠标 + 动画 */
 scene.add(camera);
-const cam={yaw:0,pitch:0};
-let mx=innerWidth/2,my=innerHeight/2,isDrag=false,hasMoved=false;
+var cam={yaw:0,pitch:0};
+var mx=innerWidth/2,my=innerHeight/2,isDrag=false,hasMoved=false;
 
 document.body.style.cursor='grab';
-renderer.domElement.onmousedown=function(e){
-  if(e.button!==0)return;
-  isDrag=true;hasMoved=false;document.body.style.cursor='grabbing';
-};
-window.onmouseup=function(e){
-  if(e.button!==0)return;
-  isDrag=false;document.body.style.cursor='grab';
-};
-window.onmousemove=function(e){
-  const dx=e.clientX-mx,dy=e.clientY-my;
-  if(isDrag){
-    cam.yaw-=dx*0.0035;cam.pitch-=dy*0.0025;
-    cam.pitch=Math.max(-Math.PI/3,Math.min(Math.PI/3,cam.pitch));
-    if(Math.abs(dx)+Math.abs(dy)>8)hasMoved=true;
-  }
-  mx=e.clientX;my=e.clientY;
-};
+renderer.domElement.onmousedown=function(e){if(e.button!==0)return;isDrag=true;hasMoved=false;document.body.style.cursor='grabbing';};
+window.onmouseup=function(e){if(e.button!==0)return;isDrag=false;document.body.style.cursor='grab';};
+window.onmousemove=function(e){var dx=e.clientX-mx,dy=e.clientY-my;
+  if(isDrag){cam.yaw-=dx*0.0035;cam.pitch-=dy*0.0025;cam.pitch=Math.max(-Math.PI/3,Math.min(Math.PI/3,cam.pitch));if(Math.abs(dx)+Math.abs(dy)>8)hasMoved=true;}
+  mx=e.clientX;my=e.clientY;};
 
-const keys={w:false,a:false,s:false,d:false};
-window.onkeydown=function(e){
-  const k=e.key.toLowerCase();
-  if(e.key==='Escape'){showExit();return;}
-  if(k==='w'||e.key==='ArrowUp')keys.w=true;
-  if(k==='s'||e.key==='ArrowDown')keys.s=true;
-  if(k==='a'||e.key==='ArrowLeft')keys.a=true;
-  if(k==='d'||e.key==='ArrowRight')keys.d=true;
-};
-window.onkeyup=function(e){
-  const k=e.key.toLowerCase();
-  if(k==='w'||e.key==='ArrowUp')keys.w=false;
-  if(k==='s'||e.key==='ArrowDown')keys.s=false;
-  if(k==='a'||e.key==='ArrowLeft')keys.a=false;
-  if(k==='d'||e.key==='ArrowRight')keys.d=false;
-};
-let si=0;
-window.onwheel=function(e){
-  si+=-e.deltaY*0.0015;si=Math.max(-0.5,Math.min(0.5,si));
-};
+var keys={w:false,a:false,s:false,d:false};
+window.onkeydown=function(e){var k=e.key.toLowerCase();if(e.key==='Escape'){showExit();return;}
+  if(k==='w'||e.key==='ArrowUp')keys.w=true;if(k==='s'||e.key==='ArrowDown')keys.s=true;
+  if(k==='a'||e.key==='ArrowLeft')keys.a=true;if(k==='d'||e.key==='ArrowRight')keys.d=true;};
+window.onkeyup=function(e){var k=e.key.toLowerCase();
+  if(k==='w'||e.key==='ArrowUp')keys.w=false;if(k==='s'||e.key==='ArrowDown')keys.s=false;
+  if(k==='a'||e.key==='ArrowLeft')keys.a=false;if(k==='d'||e.key==='ArrowRight')keys.d=false;};
+var si=0;
+window.onwheel=function(e){si+=-e.deltaY*0.0015;si=Math.max(-0.5,Math.min(0.5,si));};
 
-function showExit(){
-  document.getElementById('entry').style.display='flex';
+function showExit(){document.getElementById('entry').style.display='flex';
   requestAnimationFrame(function(){document.getElementById('entry').classList.remove('hidden');});
-  document.getElementById('ebtn').textContent='继续游览';
-}
+  document.getElementById('ebtn').textContent='继续游览';}
 
 /* 加载 */
-const lf=document.getElementById('lfill'),lp=document.getElementById('lpct');
+var lf=document.getElementById('lfill'),lp=document.getElementById('lpct');
 function setP(p){lf.style.width=(p*100).toFixed(0)+'%';lp.textContent='载入中 · '+(p*100).toFixed(0)+'%';}
-let pr=0;
-const li=setInterval(function(){
-  pr=Math.min(1,pr+0.03+Math.random()*0.05);setP(pr);
-  if(pr>=1){clearInterval(li);setTimeout(function(){document.getElementById('loading').classList.add('hidden');document.getElementById('entry').style.display='flex';},200);}
-},80);
+var pr=0,li=setInterval(function(){pr=Math.min(1,pr+0.03+Math.random()*0.05);setP(pr);
+  if(pr>=1){clearInterval(li);setTimeout(function(){document.getElementById('loading').classList.add('hidden');document.getElementById('entry').style.display='flex';},200);}},80);
 
-document.getElementById('ebtn').onclick=function(){
-  document.getElementById('entry').classList.add('hidden');
+document.getElementById('ebtn').onclick=function(){document.getElementById('entry').classList.add('hidden');
   setTimeout(function(){document.getElementById('entry').style.display='none';},600);
-  document.getElementById('hud').classList.add('visible');
-};
+  document.getElementById('hud').classList.add('visible');};
 
 /* ========== 主循环 ========== */
-const clock=new THREE.Clock();
-function animate(){
-  requestAnimationFrame(animate);
-  const dt=Math.min(0.05,clock.getDelta());
+var clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);
+  var dt=Math.min(0.05,clock.getDelta());
   camera.rotation.set(cam.pitch,cam.yaw,0);
-  const spd=3.5;
-  const fwd=new THREE.Vector3(-Math.sin(cam.yaw),0,-Math.cos(cam.yaw));
-  const rgt=new THREE.Vector3(Math.cos(cam.yaw),0,-Math.sin(cam.yaw));
-  if(keys.w)camera.position.addScaledVector(fwd,spd*dt);
-  if(keys.s)camera.position.addScaledVector(fwd,-spd*dt);
-  if(keys.a)camera.position.addScaledVector(rgt,-spd*dt);
-  if(keys.d)camera.position.addScaledVector(rgt,spd*dt);
-  if(Math.abs(si)>0.001){
-    camera.position.addScaledVector(fwd,si*6*dt);si*=Math.pow(0.001,dt);
-  }
-  const M=0.5;
-  camera.position.x=Math.max(-HW+M,Math.min(HW-M,camera.position.x));
-  camera.position.z=Math.max(-HL+M+1,Math.min(HL-M-1,camera.position.z));
+  var spd=3.5,fwd=new THREE.Vector3(-Math.sin(cam.yaw),0,-Math.cos(cam.yaw));
+  var rgt=new THREE.Vector3(Math.cos(cam.yaw),0,-Math.sin(cam.yaw));
+  if(keys.w)camera.position.addScaledVector(fwd,spd*dt);if(keys.s)camera.position.addScaledVector(fwd,-spd*dt);
+  if(keys.a)camera.position.addScaledVector(rgt,-spd*dt);if(keys.d)camera.position.addScaledVector(rgt,spd*dt);
+  if(Math.abs(si)>0.001){camera.position.addScaledVector(fwd,si*6*dt);si*=Math.pow(0.001,dt);}
+  camera.position.x=Math.max(-HW+0.5,Math.min(HW-0.5,camera.position.x));
+  camera.position.z=Math.max(-HL+1.5,Math.min(HL-1.5,camera.position.z));
   camera.position.y=1.65;
   document.getElementById('hfill').style.width=(Math.max(0,Math.min(1,1-(camera.position.z+HL)/L))*100).toFixed(1)+'%';
-  renderer.render(scene,camera);
-}
+  renderer.render(scene,camera);}
 animate();
 window.onresize=function(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
-</script>
-</body>
-</html>
+</script></body></html>
